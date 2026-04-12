@@ -1,0 +1,68 @@
+# =========================
+# 🔥 PYTHON (ALL SERVICES)
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pkl
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Python cache/test
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Alembic cache
+alembic/__pycache__/
+
+# =========================
+# 🔥 FASTAPI / ENV FILES
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# 🔥 NODE / REACT
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build folders
+build/
+dist/
+
+# =========================
+# 🔥 DOCKER
+# =========================
+*.log
+docker-compose.override.yml
+
+# =========================
+# 🔥 OS / EDITOR JUNK
+# =========================
+.DS_Store
+Thumbs.db
+
+.vscode/
+.idea/
+
+# =========================
+# 🔥 DATABASE / LOCAL FILES
+# =========================
+*.sqlite3
+*.db
+
+# =========================
+# 🔥 MISC
+# =========================
+*.swp
+*.bak

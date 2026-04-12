@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy
+pymysql
+cryptography
+requests
+alembic
+requests
+pytest
+httpx

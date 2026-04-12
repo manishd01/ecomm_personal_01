@@ -1,0 +1,120 @@
+version: "3.9"
+
+services:
+  test-mysql:
+    image: mysql:8.0
+    container_name: test-mysql
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test_db
+    tmpfs:
+      - /var/lib/mysql
+
+  order-service:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    container_name: order-service
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=test-mysql
+      - DB_PORT=3306
+      - DB_NAME=test_db
+      - ENV=test
+    depends_on:
+      - test-mysql
+      - inventory-service
+    volumes:
+      - ./order-service:/app
+
+  inventory-service:
+    build:
+      context: .
+      dockerfile: inventory-service/Dockerfile
+    container_name: inventory-service
+    ports:
+      - "8001:8000"
+    environment:
+      - DB_HOST=test-mysql
+      - DB_PORT=3306
+      - DB_NAME=test_db
+      - ENV=test
+    depends_on:
+      - test-mysql
+    volumes:
+      - ./inventory-service:/app
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: payment-service/Dockerfile
+    container_name: payment-service
+    ports:
+      - "8003:8000"
+    environment:
+      - DB_HOST=test-mysql
+      - DB_PORT=3306
+      - DB_NAME=test_db
+      - ENV=test
+    depends_on:
+      - test-mysql
+    volumes:
+      - ./payment-service:/app
+
+  customer-service:
+    build:
+      context: .
+      dockerfile: customer-service/Dockerfile
+    container_name: customer-service
+    ports:
+      - "8002:8000"
+    environment:
+      - DB_HOST=test-mysql
+      - DB_PORT=3306
+      - DB_NAME=test_db
+      - ENV=test
+    depends_on:
+      - test-mysql
+    volumes:
+      - ./customer-service:/app
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    container_name: notification-service
+    ports:
+      - "8004:8000"
+    environment:
+      - DB_HOST=test-mysql
+      - DB_PORT=3306
+      - DB_NAME=test_db
+      - ENV=test
+    depends_on:
+      - test-mysql
+    volumes:
+      - ./notification-service:/app
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    stdin_open: true
+    tty: true
+    depends_on:
+      - order-service
+      - inventory-service
+      - payment-service
+      - customer-service
+      - notification-service

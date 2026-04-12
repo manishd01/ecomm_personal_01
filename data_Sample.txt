@@ -1,0 +1,99 @@
+[
+  {
+    "product_id": 1,
+    "product_name": "Wireless Mouse",
+    "quantity": 50,
+    "price": 799,
+    "description": "Ergonomic wireless mouse with USB receiver"
+  },
+  {
+    "product_id": 2,
+    "product_name": "Mechanical Keyboard",
+    "quantity": 30,
+    "price": 2499,
+    "description": "RGB backlit mechanical keyboard with blue switches"
+  },
+  {
+    "product_id": 3,
+    "product_name": "USB-C Charger",
+    "quantity": 100,
+    "price": 999,
+    "description": "Fast charging 65W USB-C adapter"
+  },
+  {
+    "product_id": 4,
+    "product_name": "Gaming Headset",
+    "quantity": 25,
+    "price": 1999,
+    "description": "Surround sound gaming headset with mic"
+  },
+  {
+    "product_id": 5,
+    "product_name": "Laptop Stand",
+    "quantity": 40,
+    "price": 1299,
+    "description": "Adjustable aluminum laptop stand for better airflow"
+  }
+]
+
+
+
+
+
+[
+  {
+    "first_name": "Aarav",
+    "last_name": "Sharma",
+    "email": "aarav.sharma@example.com",
+    "phone": "9876543210",
+    "address": "12 MG Road",
+    "city": "Delhi",
+    "state": "Delhi",
+    "postal_code": "110001",
+    "country": "India"
+  },
+  {
+    "first_name": "Priya",
+    "last_name": "Verma",
+    "email": "priya.verma@example.com",
+    "phone": "9123456780",
+    "address": "45 Park Street",
+    "city": "Kolkata",
+    "state": "West Bengal",
+    "postal_code": "700016",
+    "country": "India"
+  },
+  {
+    "first_name": "Rohan",
+    "last_name": "Gupta",
+    "email": "rohan.gupta@example.com",
+    "phone": "9988776655",
+    "address": "78 Lake View",
+    "city": "Bangalore",
+    "state": "Karnataka",
+    "postal_code": "560001",
+    "country": "India"
+  },
+  {
+    "first_name": "Neha",
+    "last_name": "Singh",
+    "email": "neha.singh@example.com",
+    "phone": "9871234560",
+    "address": "22 Civil Lines",
+    "city": "Lucknow",
+    "state": "Uttar Pradesh",
+    "postal_code": "226001",
+    "country": "India"
+  },
+  {
+    "first_name": "Vikram",
+    "last_name": "Mehta",
+    "email": "vikram.mehta@example.com",
+    "phone": "9012345678",
+    "address": "9 Marine Drive",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "postal_code": "400001",
+    "country": "India"
+  }
+]

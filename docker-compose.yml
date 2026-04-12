@@ -1,0 +1,247 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  order-service:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    container_name: order-service
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - PORT=8000
+      - DB_NAME=order_db
+    depends_on:
+      mysql:
+        condition: service_started
+    volumes:
+      - ./order-service:/app
+
+  inventory-service:
+    build:
+      context: .
+      dockerfile: inventory-service/Dockerfile
+    container_name: inventory-service
+    ports:
+      - "8001:8000"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - PORT=8000
+      - DB_NAME=inventory_db
+    depends_on:
+      mysql:
+        condition: service_started
+    volumes:
+      - ./inventory-service:/app
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: payment-service/Dockerfile
+    container_name: payment-service
+    ports:
+      - "8003:8000"
+
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - PORT=8000
+      - DB_NAME=payment_db
+    depends_on:
+      mysql:
+        condition: service_started
+    volumes:
+      - ./payment-service:/app
+
+  customer-service:
+    build:
+      context: .
+      dockerfile: customer-service/Dockerfile
+    container_name: customer-service
+    ports:
+      - "8002:8000"
+
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - PORT=8000
+      - DB_NAME=customer_db
+    depends_on:
+      mysql:
+        condition: service_started
+    volumes:
+      - ./customer-service:/app
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    container_name: notification-service
+    ports:
+      - "8004:8000"
+
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - PORT=8000
+      - DB_NAME=notification_db
+    depends_on:
+      mysql:
+        condition: service_started
+    volumes:
+      - ./notification-service:/app
+
+  shipping-service:
+    build:
+      context: .
+      dockerfile: shipping-service/Dockerfile
+    container_name: shipping-service
+    ports:
+      - "8005:8000"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - PORT=8000
+      - DB_NAME=shipping_db
+    depends_on:
+      mysql:
+        condition: service_started
+    volumes:
+      - ./shipping-service:/app
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    stdin_open: true
+    tty: true
+    depends_on:
+      - order-service
+      - inventory-service
+      - payment-service
+      - customer-service
+      - notification-service
+
+volumes:
+  mysql_data:
+
+# services:
+#   zookeeper:
+#     image: confluentinc/cp-zookeeper:7.4.0
+#     container_name: zookeeper
+#     environment:
+#       ZOOKEEPER_CLIENT_PORT: 2181
+#       ZOOKEEPER_TICK_TIME: 2000
+
+#   kafka:
+#     image: confluentinc/cp-kafka:7.4.0
+#     container_name: kafka
+#     ports:
+#       - "9092:9092"
+#     environment:
+#       KAFKA_BROKER_ID: 1
+#       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+#       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+#       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#     depends_on:
+#       - zookeeper
+
+#   mysql:
+#     image: mysql:8.0
+#     container_name: mysql
+#     ports:
+#       - "3307:3306"
+#     environment:
+#       MYSQL_ROOT_PASSWORD: root
+#     volumes:
+#       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+#     healthcheck:
+#       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+#       timeout: 20s
+#       retries: 10
+#       interval: 5s
+
+#   order-service:
+#     build:
+#       context: ./order-service
+#     container_name: order-service
+#     ports:
+#       - "8000:8000"
+#     environment:
+#       - PYTHONPATH=/app
+#     depends_on:
+#       kafka:
+#         condition: service_started
+#       mysql:
+#         condition: service_healthy
+
+#   inventory-service:
+#     build:
+#       context: ./inventory-service
+#     container_name: inventory-service
+#     ports:
+#       - "8001:8001"
+#     depends_on:
+#       kafka:
+#         condition: service_started
+#       mysql:
+#         condition: service_healthy
+
+#   payment-service:
+#     build:
+#       context: ./payment-service
+#     container_name: payment-service
+#     ports:
+#       - "8002:8002"
+#     depends_on:
+#       kafka:
+#         condition: service_started
+#       mysql:
+#         condition: service_healthy
+
+#   notification-service:
+#     build:
+#       context: ./notification-service
+#     container_name: notification-service
+#     ports:
+#       - "8003:8003"
+#     depends_on:
+#       - kafka
+
+#   frontend:
+#     build:
+#       context: ./frontend
+#     container_name: frontend
+#     ports:
+#       - "3000:3000"
+#     stdin_open: true
+#     tty: true
+#     depends_on:
+#       - order-service
+#       - inventory-service
+#       - payment-service
+#       - notification-service
+
