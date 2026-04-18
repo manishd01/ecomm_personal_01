@@ -1,13 +1,16 @@
 from fastapi import HTTPException
 from app.exceptions import OrderNotFoundError, ShipmentAlreadyExistsError
 from sqlalchemy.orm import Session
+from app.schemas.shipping_schema import TrackingCreate
 from app.services.shipping_service import (
     create_shipment_service,
     update_shipment_status_service,
     get_shipment_service,
     get_shipments_by_order_service,
-    notify_order_shipped
+    notify_order_shipped,
+    add_tracking_update_service
 )
+
 
 
 # =========================
@@ -51,6 +54,29 @@ def get_shipment(shipment_id: int, db: Session):
 def get_shipments_by_order(order_id: int, db: Session):
     return get_shipments_by_order_service(order_id, db)
 
+def add_tracking_controller(
+    shipment_id: int,
+    data: TrackingCreate,
+    db: Session
+):
+    try:
+        print(f"Adding tracking update for shipment controller {shipment_id}")
+        tracking = add_tracking_update_service(
+            shipment_id,
+            data,
+            db
+        )
+
+        if not tracking:
+            raise HTTPException(404, "Shipment not found")
+
+        return tracking
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        raise HTTPException(500, str(e))
 
 # =========================
 # UPDATE STATUS

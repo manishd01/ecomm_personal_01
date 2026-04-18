@@ -33,5 +33,29 @@ class ShipmentResponse(ShipmentBase):
         from_attributes = True
 
 
+
+
+
+# // tracking schemaa
+class TrackingCreate(BaseModel):
+    location: str
+    status: str
+    description: Optional[str] = None
+    lat: Optional[str] = None
+    lng: Optional[str] = None
+
+class TrackingResponse(BaseModel):
+    id: int
+    location: str
+    status: str
+    timestamp: datetime
+    description: Optional[str] = None
+    lat: Optional[str] = None
+    lng: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+        
 class ShipmentDetailResponse(ShipmentResponse):
+    tracking_updates: list[TrackingResponse] = []
     pass

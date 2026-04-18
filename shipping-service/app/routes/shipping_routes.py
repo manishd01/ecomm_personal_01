@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.shipping_schema import (
     CreateShipment,
+    TrackingCreate,
+    TrackingResponse,
     UpdateShipmentStatus,
     ShipmentResponse,
     ShipmentDetailResponse
@@ -11,7 +13,8 @@ from app.controllers.shipping_controller import (
     get_shipment,
     get_shipments_by_order,
     create_shipment,
-    update_shipment_status
+    update_shipment_status,
+    add_tracking_controller
 )
 
 router = APIRouter()
@@ -31,7 +34,7 @@ def get_shipment_details(shipment_id: int, db: Session = Depends(get_db)):
 
 from typing import Optional
 
-@router.get("/shipments", response_model=list[ShipmentResponse])
+@router.get("/shipments", response_model=list[ShipmentDetailResponse])
 def list_shipments(
     status: Optional[str] = None,
     search: Optional[str] = None,
@@ -46,6 +49,16 @@ def update_status(shipment_id: int, status_update: UpdateShipmentStatus, db: Ses
     print ("entering in routesupdate status")
     return update_shipment_status(shipment_id, status_update.status, db)
 
+@router.post(
+    "/shipments/{shipment_id}/tracking",
+    response_model=TrackingResponse
+)
+def add_tracking(
+    shipment_id: int,
+    data: TrackingCreate,
+    db: Session = Depends(get_db)
+):
+    return add_tracking_controller(shipment_id, data, db)
 
 @router.get("/orders/{order_id}/shipments", response_model=list[ShipmentResponse])
 def get_order_shipments(order_id: int, db: Session = Depends(get_db)):

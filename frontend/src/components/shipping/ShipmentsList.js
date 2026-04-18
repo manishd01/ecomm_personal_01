@@ -101,7 +101,7 @@ function ShipmentsList({ shipments, updateShipmentInUI }) {
         <div className="shipments-container">
           {shipments.map((shipment) => {
             const nextStatus = getNextStatus(shipment.status);
-
+            console.log("Shipment:", shipment);
             return (
               <div key={shipment.id} className="shipment-card">
                 {/* HEADER */}
@@ -182,6 +182,33 @@ function ShipmentsList({ shipments, updateShipmentInUI }) {
                       </span>
                     );
                   })}
+                </div>
+                <div className="shipment-timeline">
+                  {shipment.tracking_updates?.length > 0 ? (
+                    shipment.tracking_updates.map((item) => (
+                      <div key={item.id} className="timeline-item">
+                        <div className="timeline-status">
+                          📦 {formatStatus(item.status)}
+                        </div>
+
+                        <div className="timeline-location">
+                          📍 {item.location}
+                        </div>
+
+                        {item.description && (
+                          <div className="timeline-desc">
+                            {item.description}
+                          </div>
+                        )}
+
+                        <div className="timeline-time">
+                          🕒 {new Date(item.timestamp).toLocaleString()}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p>No tracking updates yet</p>
+                  )}
                 </div>
               </div>
             );
