@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict
+
 
 
 # 🔹 Base schema (common fields)
@@ -28,6 +29,14 @@ class ShipmentResponse(ShipmentBase):
     delivered_at: Optional[datetime] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
+    # ✅ ADD ALL 4 FIELDS
+    return_requested_at: Optional[datetime]
+    returned_at: Optional[datetime]
+    replacement_requested_at: Optional[datetime]
+    replaced_at: Optional[datetime]
+
+
+    
 
     class Config:
         from_attributes = True
@@ -58,4 +67,6 @@ class TrackingResponse(BaseModel):
         
 class ShipmentDetailResponse(ShipmentResponse):
     tracking_updates: list[TrackingResponse] = []
-    pass
+    allowed_actions: Optional[List[Dict]] = []
+
+    

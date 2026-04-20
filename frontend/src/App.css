@@ -551,13 +551,23 @@ p {
 }
 
 .status-badge.created {
-  background: #3498db;
+  background: #3498db; /* blue */
 }
+
 .status-badge.shipped {
-  background: #f39c12;
+  background: #f39c12; /* orange */
 }
+
+.status-badge.out_for_delivery {
+  background: #8e44ad; /* purple */
+}
+
 .status-badge.delivered {
-  background: #2ecc71;
+  background: #27ae60; /* green */
+}
+
+.status-badge.returned {
+  background: #c0392b; /* dark red */
 }
 
 /* Body */
@@ -660,4 +670,82 @@ select.input-field {
   border-radius: 6px;
   border: 1px solid #ccc;
   cursor: pointer;
+}
+
+/* Timeline container */
+.timeline {
+  margin-top: 15px;
+  border-left: 2px solid #ddd;
+  padding-left: 15px;
+}
+
+/* Each item */
+.timeline-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+/* Dot */
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  background: #4caf50;
+  border-radius: 50%;
+  margin-top: 6px;
+  position: absolute;
+  left: -6px;
+}
+
+/* Content box */
+.timeline-content {
+  background: #f9f9f9;
+  padding: 10px 12px;
+  border-radius: 8px;
+  width: 100%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Title */
+.timeline-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Description */
+.timeline-desc {
+  font-size: 13px;
+  color: #666;
+}
+
+/* Time */
+.timeline-time {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.input-group {
+  margin-bottom: 12px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.info-box {
+  background: #f1f5f9;
+  padding: 10px;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+
+.info-box.success {
+  background: #d1fae5;
+  color: #065f46;
 }

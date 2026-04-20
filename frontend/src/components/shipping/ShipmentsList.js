@@ -1,107 +1,199 @@
 import React, { useState } from "react";
 import "../../App.css";
 import ShipmentStatusModal from "./ShipmentStatusModal";
-import { shippingAPI } from "../../services/api";
+import { shippingAPI, addTracking } from "../../services/api";
 import CreateShipmentModal from "./CreateShipmentModal";
 
-function ShipmentsList({ shipments, updateShipmentInUI }) {
+function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
   const [selectedShipment, setSelectedShipment] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [orderId, setOrderId] = useState("");
 
   const openStatusModal = (shipment) => {
     setSelectedShipment(shipment);
     setShowModal(true);
   };
 
-  const STATUS_FLOW = [
-    "CREATED",
-    "SHIPPED",
-    "OUT_FOR_DELIVERY",
-    "DELIVERED",
-    "RETURNED",
-  ];
-
-  const getNextStatus = (current) => {
-    const index = STATUS_FLOW.indexOf(current);
-
-    if (index === -1 || index === STATUS_FLOW.length - 1) {
-      return null;
-    }
-
-    return STATUS_FLOW[index + 1];
-  };
-
   const formatStatus = (status) => status.replaceAll("_", " ");
 
-  const handleStatusUpdate = async (id, status) => {
+  const handleStatusUpdate = async (id, payload) => {
     try {
-      await shippingAPI.updateStatus(id, { status });
-      updateShipmentInUI(id, { status });
+      console.log("🚀 Updating shipment:", id, payload);
+
+      // 🔥 STATUS UPDATE
+      if (payload.type === "STATUS") {
+        const res = await shippingAPI.updateStatus(id, {
+          status: payload.data,
+        });
+
+        console.log("✅ Status updated:", res.data);
+
+        // updateShipmentInUI(id, { status: payload.data });
+        updateShipmentInUI(id, res.data); // ✅ send full object
+      }
+
+      // 🔥 TRACKING UPDATE
+      if (payload.type === "TRACKING") {
+        const res = await shippingAPI.addTracking(id, payload.data);
+
+        console.log("📍 Tracking added:", res.data);
+
+        // For now (simple approach)
+        // window.location.reload();
+        updateShipmentInUI(id, {
+          tracking_updates: [res.data],
+        });
+      }
+
+      // ✅ ALWAYS CLOSE MODAL
       setShowModal(false);
     } catch (err) {
-      console.error(err);
+      console.error("❌ API ERROR:", err);
+
+      alert(err?.response?.data?.detail || "Something went wrong");
     }
   };
 
-  // 🔥 KPI CALCULATIONS
-  const total = shipments.length;
-  const created = shipments.filter((s) => s.status === "CREATED").length;
-  const shipped = shipments.filter((s) => s.status === "SHIPPED").length;
-  const outForDelivery = shipments.filter(
-    (s) => s.status === "OUT_FOR_DELIVERY",
-  ).length;
-  const delivered = shipments.filter((s) => s.status === "DELIVERED").length;
-  const returned = shipments.filter((s) => s.status === "RETURNED").length;
-  const replaced = shipments.filter((s) => s.status === "REPLACED").length;
+  // const STATUS_ACTIONS = {
+  //   CREATED: [{ type: "STATUS", value: "SHIPPED", label: "🚚 Ship Order" }],
+
+  //   SHIPPED: [{ type: "TRACKING", label: "📍 Add Tracking Update" }],
+
+  //   IN_TRANSIT: [
+  //     {
+  //       type: "STATUS",
+  //       value: "OUT_FOR_DELIVERY",
+  //       label: "📦 Out for Delivery",
+  //     },
+  //   ],
+
+  //   OUT_FOR_DELIVERY: [
+  //     { type: "STATUS", value: "DELIVERED", label: "✅ Mark Delivered" },
+  //   ],
+
+  //   DELIVERED: [
+  //     { type: "STATUS", value: "RETURN_REQUESTED", label: "↩️ Return" },
+  //     { type: "STATUS", value: "REPLACEMENT_REQUESTED", label: "🔁 Replace" },
+  //   ],
+
+  //   RETURN_REQUESTED: [
+  //     { type: "STATUS", value: "RETURNED", label: "✔ Confirm Return" },
+  //   ],
+
+  //   REPLACEMENT_REQUESTED: [
+  //     { type: "STATUS", value: "REPLACED", label: "✔ Confirm Replacement" },
+  //   ],
+  // };
+
+  // const getNextActions = async (shipmentId) => {
+  //   const res = await shippingAPI.get(`/shipments/${shipmentId}/next-actions`);
+  //   console.log(res, "Next Actions:");
+  //   return res.data.allowed_actions;
+  // };
+
+  // ✅ Unified Timeline Builder
+  const buildTimeline = (shipment) => {
+    const timeline = [];
+
+    // CREATED
+    timeline.push({
+      type: "STATUS",
+      label: "Order Created",
+      time: shipment.created_at,
+    });
+
+    // SHIPPED
+    if (shipment.status !== "CREATED") {
+      timeline.push({
+        type: "STATUS",
+        label: `Shipped via ${shipment.carrier || "Carrier"}`,
+        time: shipment.shipped_at || shipment.created_at,
+      });
+    }
+
+    // TRACKING EVENTS
+    shipment.tracking_updates?.forEach((t) => {
+      timeline.push({
+        type: "TRACKING",
+        label: t.status.replaceAll("_", " "),
+        location: t.location,
+        description: t.description,
+        time: t.timestamp,
+      });
+    });
+
+    // OUT FOR DELIVERY
+    if (
+      shipment.status === "OUT_FOR_DELIVERY" ||
+      shipment.status === "DELIVERED"
+    ) {
+      timeline.push({
+        type: "STATUS",
+        label: "Out for Delivery",
+        time: shipment.updated_at,
+      });
+    }
+
+    // DELIVERED
+    if (shipment.delivered_at) {
+      timeline.push({
+        type: "STATUS",
+        label: "Delivered",
+        time: shipment.delivered_at,
+      });
+    }
+    // RETURN FLOW
+    if (shipment.return_requested_at) {
+      timeline.push({
+        type: "STATUS",
+        label: "Return Requested",
+        time: shipment.return_requested_at,
+      });
+    }
+
+    if (shipment.returned_at) {
+      timeline.push({
+        type: "STATUS",
+        label: "Returned Successfully",
+        time: shipment.returned_at,
+      });
+    }
+
+    // REPLACEMENT FLOW
+    if (shipment.replacement_requested_at) {
+      timeline.push({
+        type: "STATUS",
+        label: "Replacement Requested",
+        time: shipment.replacement_requested_at,
+      });
+    }
+
+    if (shipment.replaced_at) {
+      timeline.push({
+        type: "STATUS",
+        label: "Product Replaced",
+        time: shipment.replaced_at,
+      });
+    }
+    console.log("timelines: ", timeline);
+    return timeline.sort((a, b) => new Date(a.time) - new Date(b.time));
+  };
 
   return (
     <section className="section">
       <h2>📦 Shipping Dashboard</h2>
+
       <button className="create-btn" onClick={() => setShowCreateModal(true)}>
         ➕ Create Shipment
       </button>
 
-      {/* KPI CARDS */}
-      <div className="kpi-container">
-        <div className="kpi-card total">
-          📦 Total <br /> {total}
-        </div>
-
-        <div className="kpi-card created">
-          🆕 Created <br /> {created}
-        </div>
-
-        <div className="kpi-card shipped">
-          🚚 Shipped <br /> {shipped}
-        </div>
-
-        <div className="kpi-card out">
-          📍 Out for Delivery <br /> {outForDelivery}
-        </div>
-
-        <div className="kpi-card delivered">
-          ✅ Delivered <br /> {delivered}
-        </div>
-
-        <div className="kpi-card returned">
-          ↩️ Returned <br /> {returned}
-        </div>
-
-        <div className="kpi-card replaced">
-          🔁 Replaced <br /> {replaced}
-        </div>
-      </div>
-
-      {/* LIST */}
       <h3>All Shipments ({shipments.length})</h3>
 
       {shipments.length > 0 ? (
         <div className="shipments-container">
           {shipments.map((shipment) => {
-            const nextStatus = getNextStatus(shipment.status);
-            console.log("Shipment:", shipment);
+            const timeline = buildTimeline(shipment);
+
             return (
               <div key={shipment.id} className="shipment-card">
                 {/* HEADER */}
@@ -127,22 +219,9 @@ function ShipmentsList({ shipments, updateShipmentInUI }) {
                     <strong>Carrier:</strong> {shipment.carrier || "N/A"}
                   </p>
 
-                  {/* ACTION */}
-                  <div className="shipment-actions">
-                    {/* {nextStatus && (
-                      <button
-                        onClick={() =>
-                          handleStatusUpdate(shipment.id, nextStatus)
-                        }
-                      >
-                        🔄 Move to {formatStatus(nextStatus)}
-                      </button>
-                    )} */}
-
-                    <button onClick={() => openStatusModal(shipment)}>
-                      ✏️ Change Status
-                    </button>
-                  </div>
+                  <button onClick={() => openStatusModal(shipment)}>
+                    ✏️ Change Status
+                  </button>
                 </div>
 
                 {/* META */}
@@ -168,31 +247,17 @@ function ShipmentsList({ shipments, updateShipmentInUI }) {
                   )}
                 </div>
 
-                {/* TIMELINE */}
-                <div className="shipment-timeline">
-                  {STATUS_FLOW.map((status, index) => {
-                    const currentIndex = STATUS_FLOW.indexOf(shipment.status);
+                {/* 🔥 TIMELINE */}
+                <div className="timeline">
+                  {timeline.map((item, index) => (
+                    <div key={index} className="timeline-item">
+                      <div className="timeline-dot"></div>
 
-                    return (
-                      <span
-                        key={status}
-                        className={index <= currentIndex ? "done" : ""}
-                      >
-                        {formatStatus(status)}
-                      </span>
-                    );
-                  })}
-                </div>
-                <div className="shipment-timeline">
-                  {shipment.tracking_updates?.length > 0 ? (
-                    shipment.tracking_updates.map((item) => (
-                      <div key={item.id} className="timeline-item">
-                        <div className="timeline-status">
-                          📦 {formatStatus(item.status)}
-                        </div>
-
-                        <div className="timeline-location">
-                          📍 {item.location}
+                      <div className="timeline-content">
+                        <div className="timeline-title">
+                          {item.type === "STATUS"
+                            ? `📦 ${item.label}`
+                            : `📍 ${item.label} - ${item.location}`}
                         </div>
 
                         {item.description && (
@@ -202,39 +267,32 @@ function ShipmentsList({ shipments, updateShipmentInUI }) {
                         )}
 
                         <div className="timeline-time">
-                          🕒 {new Date(item.timestamp).toLocaleString()}
+                          🕒 {new Date(item.time).toLocaleString()}
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <p>No tracking updates yet</p>
-                  )}
+                    </div>
+                  ))}
                 </div>
               </div>
             );
           })}
-
-          {showModal && (
-            <ShipmentStatusModal
-              shipment={selectedShipment}
-              onClose={() => setShowModal(false)}
-              onConfirm={handleStatusUpdate}
-              getNextStatus={getNextStatus}
-            />
-          )}
-          {showCreateModal && (
-            <CreateShipmentModal
-              onClose={() => setShowCreateModal(false)}
-              onSuccess={() => {
-                // 🔥 refresh data
-                window.location.reload(); // quick fix
-                // OR call fetchData() if available
-              }}
-            />
-          )}
         </div>
       ) : (
         <p>No shipments found</p>
+      )}
+      {showModal && (
+        <ShipmentStatusModal
+          shipment={selectedShipment}
+          onClose={() => setShowModal(false)}
+          onConfirm={handleStatusUpdate}
+        />
+      )}
+
+      {showCreateModal && (
+        <CreateShipmentModal
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={(newShipment) => addShipmentToUI(newShipment)}
+        />
       )}
     </section>
   );

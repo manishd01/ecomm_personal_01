@@ -8,11 +8,26 @@ from app.services.shipping_service import (
     get_shipment_service,
     get_shipments_by_order_service,
     notify_order_shipped,
-    add_tracking_update_service
+    add_tracking_update_service,
+    get_next_actions_service
 )
 
 
 
+def get_next_actions_controller(shipment_id: int, db):
+    try:
+        result = get_next_actions_service(shipment_id, db)
+
+        if not result:
+            raise HTTPException(404, "Shipment not found")
+
+        return result
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        raise HTTPException(500, str(e))
 # =========================
 # CREATE
 # =========================
@@ -76,6 +91,27 @@ def add_tracking_controller(
         raise
 
     except Exception as e:
+        raise HTTPException(500, str(e))
+    
+def get_next_actions_controller(shipment_id: int, db):
+    try:
+        print(f"Fetching next actions for shipment {shipment_id}")
+
+        result = get_next_actions_service(shipment_id, db)
+
+        if not result:
+            print("❌ Shipment not found")
+            raise HTTPException(404, "Shipment not found")
+
+        print(f"✅ Allowed actions: {result}")
+
+        return result
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        print(f"🔥 Error in get_next_actions_controller: {str(e)}")
         raise HTTPException(500, str(e))
 
 # =========================

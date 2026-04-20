@@ -7,14 +7,16 @@ from app.schemas.shipping_schema import (
     TrackingResponse,
     UpdateShipmentStatus,
     ShipmentResponse,
-    ShipmentDetailResponse
+    ShipmentDetailResponse,
+    
 )
 from app.controllers.shipping_controller import (
     get_shipment,
     get_shipments_by_order,
     create_shipment,
     update_shipment_status,
-    add_tracking_controller
+    add_tracking_controller,
+    get_next_actions_controller
 )
 
 router = APIRouter()
@@ -65,6 +67,11 @@ def get_order_shipments(order_id: int, db: Session = Depends(get_db)):
     """Get all shipments for a specific order"""
     return get_shipments_by_order(order_id, db)
 
+
+
+@router.get("/shipments/{shipment_id}/next-actions")
+def get_next_actions(shipment_id: int, db: Session = Depends(get_db)):
+    return get_next_actions_controller(shipment_id, db)
 
 @router.get("/health")
 def health():

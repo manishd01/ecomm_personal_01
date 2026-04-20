@@ -32,7 +32,10 @@ class Shipment(Base):
         server_default=func.now(),
         onupdate=func.now()
     )
-    
+    return_requested_at = Column(DateTime, nullable=True)
+    returned_at = Column(DateTime, nullable=True)
+    replacement_requested_at = Column(DateTime, nullable=True)
+    replaced_at = Column(DateTime, nullable=True)
     tracking_updates = relationship(
         "ShipmentTracking",
         back_populates="shipment",
@@ -47,7 +50,8 @@ class ShipmentTracking(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     shipment_id = Column(Integer, ForeignKey("shipments.id"), index=True)
-    location = Column(String(255), nullable=False)     # ✅ FIXED
+    event_type = Column(String(20), nullable=False, default="TRACKING")
+    location = Column(String(255), nullable=True)     # ✅ FIXED
     status = Column(String(50), nullable=False)        # ✅ FIXED
     description = Column(String(255), nullable=True)  
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)

@@ -90,9 +90,31 @@ export const useDashboardData = () => {
     fetchData();
   }, []);
 
+  const addShipmentToUI = (newShipment) => {
+    setShipments((prev) => [newShipment, ...prev]);
+  };
   const updateShipmentInUI = (id, updatedShipment) => {
     setShipments((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...updatedShipment } : s)),
+      prev.map((s) => {
+        if (s.id !== id) return s;
+
+        return {
+          ...s,
+          ...updatedShipment,
+
+          // ✅ ALWAYS prefer latest allowed_actions
+          allowed_actions:
+            updatedShipment.allowed_actions ?? s.allowed_actions ?? [],
+
+          // ✅ merge tracking safely
+          tracking_updates: updatedShipment.tracking_updates
+            ? [
+                ...(s.tracking_updates || []),
+                ...updatedShipment.tracking_updates,
+              ]
+            : s.tracking_updates || [],
+        };
+      }),
     );
   };
 
@@ -107,6 +129,7 @@ export const useDashboardData = () => {
     error,
     servicesHealth,
     updateShipmentInUI,
+    addShipmentToUI,
     fetchData,
   };
 };
