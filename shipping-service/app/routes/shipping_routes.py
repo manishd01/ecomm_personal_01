@@ -45,7 +45,7 @@ def list_shipments(
     from app.services.shipping_service import list_shipments_service
     return list_shipments_service(db, status, search)
 
-@router.patch("/shipments/{shipment_id}/status", response_model=ShipmentResponse)
+@router.patch("/shipments/{shipment_id}/status", response_model=ShipmentDetailResponse)
 def update_status(shipment_id: int, status_update: UpdateShipmentStatus, db: Session = Depends(get_db)):
     """Update shipment status with validation"""
     print ("entering in routesupdate status")

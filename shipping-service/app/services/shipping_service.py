@@ -5,6 +5,8 @@ from app.schemas.shipping_schema import TrackingCreate
 from datetime import datetime, timedelta
 import requests
 from decouple import config
+from app.kafka_producer import send_event   #kafka  thing
+
 
 # ORDER_SERVICE_URL = config(
 #     "ORDER_SERVICE_URL",
@@ -282,9 +284,11 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db):
             print("🔵 STEP 7: Applying DELIVERED logic")
 
             shipment.delivered_at = datetime.utcnow()
+            
             print(f"   ➤ Delivered at: {shipment.delivered_at}")
         elif new_status == "RETURN_REQUESTED":
             shipment.return_requested_at = datetime.utcnow()
+            
 
         elif new_status == "RETURNED":
             shipment.returned_at = datetime.utcnow()
@@ -309,8 +313,24 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db):
 
         print("🔵 STEP 11: Refreshing object")
         db.refresh(shipment)
-
+    #       kakfa event produceL:
+    # 🔥 SEND EVENT AFTER COMMIT
+        try:
+            send_event("shipment-events", {
+                "event": "SHIPMENT_STATUS_UPDATED",
+                "data": {
+                    "shipment_id": shipment.id,
+                    "order_id": shipment.order_id,
+                    "status": shipment.status,
+                    "carrier": shipment.carrier,
+                    "tracking_number": shipment.tracking_number,
+                    "timestamp": str(datetime.utcnow())
+                }
+            })
+        except Exception as e:
+            print("⚠️ Kafka failed but DB is OK:", str(e))
         print("✅ STEP 12: Returning updated shipment")
+        shipment.allowed_actions = VALID_TRANSITIONS.get(shipment.status, [])
 
         return shipment
 

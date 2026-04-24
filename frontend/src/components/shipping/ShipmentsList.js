@@ -26,7 +26,7 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
           status: payload.data,
         });
 
-        console.log("✅ Status updated:", res.data);
+        console.log("✅ Status updated --:", res.data);
 
         // updateShipmentInUI(id, { status: payload.data });
         updateShipmentInUI(id, res.data); // ✅ send full object
@@ -36,6 +36,9 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
       if (payload.type === "TRACKING") {
         const res = await shippingAPI.addTracking(id, payload.data);
 
+        const updated = await shippingAPI.getShipmentById(id);
+
+        console.log("✅ Fresh shipment:", updated.data);
         console.log("📍 Tracking added:", res.data);
 
         // For now (simple approach)
@@ -180,7 +183,7 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
   };
 
   return (
-    <section className="section">
+    <section className="section-modal">
       <h2>📦 Shipping Dashboard</h2>
 
       <button className="create-btn" onClick={() => setShowCreateModal(true)}>
