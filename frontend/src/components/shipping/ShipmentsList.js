@@ -9,12 +9,20 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
   const [showModal, setShowModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const openStatusModal = (shipment) => {
-    setSelectedShipment(shipment);
-    setShowModal(true);
-  };
+  const openStatusModal = async (shipment) => {
+    try {
+      const res = await shippingAPI.getShipmentById(shipment.id);
 
-  const formatStatus = (status) => status.replaceAll("_", " ");
+      setSelectedShipment(res.data); // ✅ always fresh from backend
+      setShowModal(true);
+    } catch (err) {
+      console.error("Failed to fetch shipment", err);
+    }
+  };
+  const formatStatus = (status) => {
+    if (!status) return "UNKNOWN";
+    return status.replaceAll("_", " ");
+  };
 
   const handleStatusUpdate = async (id, payload) => {
     try {
@@ -24,12 +32,17 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
       if (payload.type === "STATUS") {
         const res = await shippingAPI.updateStatus(id, {
           status: payload.data,
+          location: payload.meta?.location, // ✅ send location
         });
 
         console.log("✅ Status updated:", res.data);
 
         // updateShipmentInUI(id, { status: payload.data });
-        updateShipmentInUI(id, res.data); // ✅ send full object
+        // updateShipmentInUI(id, res.data); // ✅ send full object'
+        // 🔥 ALWAYS GET FRESH DATA
+        const updated = await shippingAPI.getShipmentById(id);
+
+        updateShipmentInUI(id, updated.data);
       }
 
       // 🔥 TRACKING UPDATE
@@ -40,9 +53,13 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
 
         // For now (simple approach)
         // window.location.reload();
-        updateShipmentInUI(id, {
-          tracking_updates: [res.data],
-        });
+        // updateShipmentInUI(id, (prev) => ({
+        //   ...prev,
+        //   tracking_updates: [...(prev.tracking_updates || []), res.data],
+        // }));
+
+        // const updated = await shippingAPI.getShipmentById(id);
+        updateShipmentInUI(id, updated.data);
       }
 
       // ✅ ALWAYS CLOSE MODAL
@@ -91,8 +108,10 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
   //   return res.data.allowed_actions;
   // };
 
-  // ✅ Unified Timeline Builder
   const buildTimeline = (shipment) => {
+    console.log("builign timeline: shipment", shipment);
+    if (!shipment || !shipment.id) return null;
+
     const timeline = [];
 
     // CREATED
@@ -102,20 +121,30 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
       time: shipment.created_at,
     });
 
-    // SHIPPED
-    if (shipment.status !== "CREATED") {
+    // ✅ FIXED: SHIPPED from tracking (NOT updated_at)
+    const shippedEvent = shipment.tracking_updates?.find(
+      (t) => t.status === "SHIPPED",
+    );
+
+    if (shippedEvent) {
       timeline.push({
         type: "STATUS",
         label: `Shipped via ${shipment.carrier || "Carrier"}`,
-        time: shipment.shipped_at || shipment.created_at,
+        location: shippedEvent.location,
+        time: shippedEvent.timestamp,
       });
     }
 
-    // TRACKING EVENTS
+    // 🔥 ONLY TRACKING EVENTS HERE (NO SYSTEM EVENTS)
     shipment.tracking_updates?.forEach((t) => {
+      if (t.event_type === "STATUS_UPDATE") return; // skip backend status logs
+
+      // also skip SHIPPED (already handled above)
+      if (t.status === "SHIPPED") return;
+
       timeline.push({
         type: "TRACKING",
-        label: t.status.replaceAll("_", " "),
+        label: t.status?.replaceAll("_", " ") || "Unknown",
         location: t.location,
         description: t.description,
         time: t.timestamp,
@@ -142,6 +171,7 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
         time: shipment.delivered_at,
       });
     }
+
     // RETURN FLOW
     if (shipment.return_requested_at) {
       timeline.push({
@@ -175,10 +205,11 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
         time: shipment.replaced_at,
       });
     }
+
     console.log("timelines: ", timeline);
+
     return timeline.sort((a, b) => new Date(a.time) - new Date(b.time));
   };
-
   return (
     <section className="section">
       <h2>📦 Shipping Dashboard</h2>
@@ -255,9 +286,14 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
 
                       <div className="timeline-content">
                         <div className="timeline-title">
-                          {item.type === "STATUS"
-                            ? `📦 ${item.label}`
-                            : `📍 ${item.label} - ${item.location}`}
+                          {item.type === "STATUS" ? (
+                            <>
+                              📦 {item.label}
+                              {item.location && <div>📍 {item.location}</div>}
+                            </>
+                          ) : (
+                            `📍 ${item.label} - ${item.location}`
+                          )}
                         </div>
 
                         {item.description && (

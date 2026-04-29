@@ -15,11 +15,16 @@ function ShipmentStatusModal({ shipment, onClose, onConfirm }) {
   const actions = shipment.allowed_actions || [];
   const isDelivered = shipment.status === "DELIVERED";
 
+  // ✅ NEW: helper to check if location is required
+  const requiresLocation = (action) =>
+    action.type === "TRACKING" ||
+    (action.type === "STATUS" && action.value === "SHIPPED");
+
   const handleActionClick = async (action) => {
     try {
       // ✅ validation (important)
-      if (action.type === "TRACKING" && !location) {
-        alert("Location is required for tracking update");
+      if (requiresLocation(action) && !location) {
+        alert("Location is required");
         return;
       }
 
@@ -35,6 +40,7 @@ function ShipmentStatusModal({ shipment, onClose, onConfirm }) {
                 status: trackingStatus,
               }
             : action.value,
+        meta: requiresLocation(action) ? { location } : null, // ✅ send location for shipped also
       });
 
       onClose();
@@ -45,6 +51,10 @@ function ShipmentStatusModal({ shipment, onClose, onConfirm }) {
       setLoading(false);
     }
   };
+  const hasTrackingAction = actions.some((a) => a.type === "TRACKING");
+  const hasShipAction = actions.some(
+    (a) => a.type === "STATUS" && a.value === "SHIPPED",
+  );
 
   return (
     <div className="modal-overlay">
@@ -68,7 +78,7 @@ function ShipmentStatusModal({ shipment, onClose, onConfirm }) {
                 key={index}
                 className="confirm-btn"
                 style={{ margin: "5px", width: "100%" }}
-                disabled={loading || (action.type === "TRACKING" && !location)}
+                disabled={loading || (requiresLocation(action) && !location)}
                 onClick={() => handleActionClick(action)}
               >
                 {action.label}
@@ -77,8 +87,14 @@ function ShipmentStatusModal({ shipment, onClose, onConfirm }) {
           </div>
         )}
 
-        {/* 🔥 TRACKING INPUTS */}
-        {actions.some((a) => a.type === "TRACKING") && (
+        {/* 🔥 TRACKING + SHIPPED INPUTS */}
+        {/* {actions.some(
+        //   (a) =>
+        //     a.type === "TRACKING" ||
+        //     (a.type === "STATUS" && a.value === "SHIPPED"),
+        // ) && ( */}
+        {/* ✅ SHIPPED → ONLY LOCATION */}
+        {hasShipAction && (
           <div className="input-group">
             <label>📍 Location</label>
             <input
@@ -87,6 +103,20 @@ function ShipmentStatusModal({ shipment, onClose, onConfirm }) {
               onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g. Ludhiana Hub"
             />
+          </div>
+        )}
+
+        {/* ✅ TRACKING → FULL FIELDS */}
+        {hasTrackingAction && (
+          <div className="input-group">
+            <label>📍 Location</label>
+            <input
+              className="input-field"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. Delhi Hub"
+            />
+
             <label>📦 Tracking Status</label>
             <select
               className="input-field"

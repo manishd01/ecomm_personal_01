@@ -49,7 +49,8 @@ def list_shipments(
 def update_status(shipment_id: int, status_update: UpdateShipmentStatus, db: Session = Depends(get_db)):
     """Update shipment status with validation"""
     print ("entering in routesupdate status")
-    return update_shipment_status(shipment_id, status_update.status, db)
+    location=status_update.location
+    return update_shipment_status(shipment_id, status_update.status, db, location)
 
 @router.post(
     "/shipments/{shipment_id}/tracking",
@@ -60,7 +61,9 @@ def add_tracking(
     data: TrackingCreate,
     db: Session = Depends(get_db)
 ):
-    return add_tracking_controller(shipment_id, data, db)
+    location=data.location
+    print("data came in trakcing addding:----", data)
+    return add_tracking_controller(shipment_id, data, db,location)
 
 @router.get("/orders/{order_id}/shipments", response_model=list[ShipmentResponse])
 def get_order_shipments(order_id: int, db: Session = Depends(get_db)):

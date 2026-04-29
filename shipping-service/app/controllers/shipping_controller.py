@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import HTTPException
 from app.exceptions import OrderNotFoundError, ShipmentAlreadyExistsError
 from sqlalchemy.orm import Session
@@ -72,14 +74,15 @@ def get_shipments_by_order(order_id: int, db: Session):
 def add_tracking_controller(
     shipment_id: int,
     data: TrackingCreate,
-    db: Session
+    db: Session,
+    location: Optional[str] = None
 ):
     try:
         print(f"Adding tracking update for shipment controller {shipment_id}")
         tracking = add_tracking_update_service(
             shipment_id,
             data,
-            db
+            db,location
         )
 
         if not tracking:
@@ -117,13 +120,14 @@ def get_next_actions_controller(shipment_id: int, db):
 # =========================
 # UPDATE STATUS
 # =========================
-def update_shipment_status(shipment_id: int, new_status: str, db: Session):
+def update_shipment_status(shipment_id: int, new_status: str, db: Session, location: Optional[str] = None):
 
     try:
         shipment = update_shipment_status_service(
             shipment_id,
             new_status,
-            db
+            db,
+            location
         )
 
         if not shipment:

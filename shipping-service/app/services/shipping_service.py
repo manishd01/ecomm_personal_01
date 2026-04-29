@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import HTTPException
 from app.exceptions import OrderNotFoundError, ShipmentAlreadyExistsError
 from app.models.shipping_model import Shipment, ShipmentTracking
@@ -179,7 +181,7 @@ def get_customer_city(order_id: int) -> str:
 #         Shipment.id == shipment_id
 #     ).first()
 
-def add_tracking_update_service(shipment_id: int, data, db):
+def add_tracking_update_service(shipment_id: int, data, db, location: Optional[str] = None):
 
     shipment = db.query(Shipment).filter(
         Shipment.id == shipment_id
@@ -204,38 +206,44 @@ def add_tracking_update_service(shipment_id: int, data, db):
     if last and last.location == data.location and last.status == status:
         raise HTTPException(400, "Duplicate tracking update")
 
-    # 🔥 Create tracking event
-    tracking = ShipmentTracking(
-        shipment_id=shipment_id,
-        location=data.location,
-        status=status,
-        description=data.description,
-    )
+    # # 🔥 Create tracking event
+    # tracking = ShipmentTracking(
+    #     shipment_id=shipment_id,
+    #     location=data.location,
+    #     status=status,
+    #     description=data.description,
+    # )
+ 
+    # db.add(tracking)
 
-    db.add(tracking)
-
-    # 🔥 Update shipment main status (only when needed)
     if status == "OUT_FOR_DELIVERY":
-        shipment.status = "OUT_FOR_DELIVERY"
+        update_shipment_status_service(shipment_id, "OUT_FOR_DELIVERY", db, location)
 
     elif status == "DELIVERED":
-        shipment.status = "DELIVERED"
-        shipment.delivered_at = datetime.utcnow()
+        update_shipment_status_service(shipment_id, "DELIVERED", db, location)
 
-    db.commit()
-    db.refresh(tracking)
+    # db.commit()
+    # # db.refresh(tracking)
+    # db.add(tracking)
+    # db.commit()
+    # db.refresh(tracking)
+    
 
-    return tracking
+    # return tracking
 
 # =========================
 # UPDATE STATUS
 # =========================
-def update_shipment_status_service(shipment_id: int, new_status: str, db):
+# =========================
+# UPDATE STATUS
+# =========================
+def update_shipment_status_service(shipment_id: int, new_status: str, db, location: Optional[str] = None):
     print("🔵 STEP 0: Function called")
     print(f"➡️ Shipment ID: {shipment_id}, Incoming Status: {new_status}")
 
     try:
-        print("🔵 STEP 1: Fetching shipment from DB")
+        # 🔵 STEP 1: Fetch shipment FIRST (FIXED)
+        print("🔵 STEP 1: Fetching shipment from DB") 
         shipment = db.query(Shipment).filter(
             Shipment.id == shipment_id
         ).first()
@@ -246,9 +254,11 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db):
 
         print(f"✅ STEP 2: Shipment found with current status: {shipment.status}")
 
-        new_status = new_status.upper()
+        # 🔵 STEP 3: Normalize new status
+        new_status = new_status.upper().strip()
         print(f"🔵 STEP 3: Normalized new status: {new_status}")
 
+        # 🔵 STEP 4: Check transition validity
         print("🔵 STEP 4: Checking transition validity")
         if not can_transition(shipment.status, new_status):
             print(f"❌ STEP FAIL: Invalid transition {shipment.status} → {new_status}")
@@ -260,11 +270,34 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db):
         print("✅ STEP 5: Transition valid")
 
         # =========================
-        # SPECIAL LOGIC
+        # 🔥 ALWAYS UPDATE STATUS (moved here safely)
+        # =========================
+        print("🔵 STEP 6: Updating shipment status")
+        shipment.status = new_status
+
+        # =========================
+        # 🔥 ADD TRACKING ENTRY (FIXED POSITION)
+        # =========================
+        print("🔵 STEP 7: Creating tracking entry")
+
+        tracking = ShipmentTracking(
+            shipment_id=shipment.id,
+            status=new_status,
+            description=f"Status changed to {new_status}",
+            event_type="STATUS_UPDATE",
+            timestamp=datetime.utcnow(),
+            location=location
+        )
+
+        db.add(tracking)
+        db.commit()
+        db.refresh(tracking)
+        # =========================
+        # SPECIAL LOGIC (UNCHANGED)
         # =========================
 
         if new_status == "SHIPPED":
-            print("🔵 STEP 6: Applying SHIPPED logic")
+            print("🔵 STEP 8: Applying SHIPPED logic")
 
             shipment.tracking_number = generate_tracking_number()
             print(f"   ➤ Generated tracking number: {shipment.tracking_number}")
@@ -279,10 +312,11 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db):
             print(f"   ➤ Estimated delivery set: {shipment.estimated_delivery}")
 
         elif new_status == "DELIVERED":
-            print("🔵 STEP 7: Applying DELIVERED logic")
+            print("🔵 STEP 9: Applying DELIVERED logic")
 
             shipment.delivered_at = datetime.utcnow()
             print(f"   ➤ Delivered at: {shipment.delivered_at}")
+
         elif new_status == "RETURN_REQUESTED":
             shipment.return_requested_at = datetime.utcnow()
 
@@ -296,26 +330,53 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db):
             shipment.replaced_at = datetime.utcnow()
 
         # =========================
-        # 🔥 ALWAYS UPDATE STATUS
+        # 🔥 COMMIT BOTH shipment + tracking
         # =========================
-
-        print("🔵 STEP 8: Updating shipment status")
-        shipment.status = new_status
-
-        print("🔵 STEP 9: Committing to DB")
+        print("🔵 STEP 10: Committing to DB")
         db.commit()
 
-        print("✅ STEP 10: Commit successful")
+        print("✅ STEP 11: Commit successful")
 
-        print("🔵 STEP 11: Refreshing object")
+        # =========================
+        # 🔥 REFRESH
+        # =========================
+        print("🔵 STEP 12: Refreshing objects")
         db.refresh(shipment)
 
+<<<<<<< Updated upstream
         print("✅ STEP 12: Returning updated shipment")
+=======
+        # =========================
+        # 🔥 SEND KAFKA EVENT (UNCHANGED)
+        # =========================
+        try: 
+            print("sending event to kafka---------------------------------------------------------------")
+            send_event("shipment-events", {
+                "event": "SHIPMENT_STATUS_UPDATED",
+                "data": {
+                    "shipment_id": shipment.id,
+                    "order_id": shipment.order_id,
+                    "status": shipment.status,
+                    "carrier": shipment.carrier,
+                    "tracking_number": shipment.tracking_number,
+                    "timestamp": str(datetime.utcnow())
+                }
+            })
+            print(" sent ..event to kafka---------------------------------------------------------------")
+
+        except Exception as e:
+            print("⚠️ Kafka failed but DB is OK:", str(e))
+
+        print("✅ STEP 13: Returning updated shipment")
+
+        shipment.allowed_actions = VALID_TRANSITIONS.get(shipment.status, [])
+>>>>>>> Stashed changes
 
         return shipment
 
     except HTTPException as http_err:
         print(f"⚠️ HTTPException occurred: {http_err.detail}")
+        db.rollback()
         raise
 
     except Exception as e:
@@ -326,6 +387,137 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db):
         db.rollback()
 
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+# def update_shipment_status_service(shipment_id: int, new_status: str, db):
+#     print("🔵 STEP 0: Function called")
+#     print(f"➡️ Shipment ID: {shipment_id}, Incoming Status: {new_status}")
+#         # 1. Update main shipment table
+#     shipment.status = new_status
+
+#     # 2. Add tracking entry (ALWAYS)
+#     tracking = ShipmentTracking(
+#         shipment_id=shipment.id,
+#         status=new_status,
+#         description=f"Status changed to {new_status}"
+#     )
+
+#     db.add(tracking)
+
+#     try:
+#         print("🔵 STEP 1: Fetching shipment from DB") 
+#         shipment = db.query(Shipment).filter(
+#             Shipment.id == shipment_id
+#         ).first()
+
+#         if not shipment:
+#             print("❌ STEP FAIL: Shipment not found")
+#             return None
+
+#         print(f"✅ STEP 2: Shipment found with current status: {shipment.status}")
+
+#         new_status = new_status.upper()
+#         print(f"🔵 STEP 3: Normalized new status: {new_status}")
+
+#         print("🔵 STEP 4: Checking transition validity")
+#         if not can_transition(shipment.status, new_status):
+#             print(f"❌ STEP FAIL: Invalid transition {shipment.status} → {new_status}")
+#             raise HTTPException(
+#                 status_code=400,
+#                 detail=f"Invalid transition from {shipment.status} to {new_status}"
+#             )
+
+#         print("✅ STEP 5: Transition valid")
+
+#         # =========================
+#         # SPECIAL LOGIC
+#         # =========================
+
+#         if new_status == "SHIPPED":
+#             print("🔵 STEP 6: Applying SHIPPED logic")
+
+#             shipment.tracking_number = generate_tracking_number()
+#             print(f"   ➤ Generated tracking number: {shipment.tracking_number}")
+
+#             city = get_customer_city(shipment.order_id)
+#             print(f"   ➤ Customer city: {city}")
+
+#             shipment.carrier = assign_carrier_by_city(city)
+#             print(f"   ➤ Assigned carrier: {shipment.carrier}")
+
+#             shipment.estimated_delivery = datetime.utcnow() + timedelta(days=7)
+#             print(f"   ➤ Estimated delivery set: {shipment.estimated_delivery}")
+
+#         elif new_status == "DELIVERED":
+#             print("🔵 STEP 7: Applying DELIVERED logic")
+
+#             shipment.delivered_at = datetime.utcnow()
+            
+#             print(f"   ➤ Delivered at: {shipment.delivered_at}")
+#         elif new_status == "RETURN_REQUESTED":
+#             shipment.return_requested_at = datetime.utcnow()
+            
+
+#         elif new_status == "RETURNED":
+#             shipment.returned_at = datetime.utcnow()
+
+#         elif new_status == "REPLACEMENT_REQUESTED":
+#             shipment.replacement_requested_at = datetime.utcnow()
+
+#         elif new_status == "REPLACED":
+#             shipment.replaced_at = datetime.utcnow()
+
+#         # =========================
+#         # 🔥 ALWAYS UPDATE STATUS
+#         # =========================
+
+#         print("🔵 STEP 8: Updating shipment status")
+#         shipment.status = new_status
+
+#         print("🔵 STEP 9: Committing to DB")
+#         db.commit()
+
+#         print("✅ STEP 10: Commit successful")
+
+#         print("🔵 STEP 11: Refreshing object")
+#         db.refresh(shipment)
+#     #       kakfa event produceL:
+#     # 🔥 SEND EVENT AFTER COMMIT
+#         try: 
+#             print("sending event to kakfa---------------------------------------------------------------")
+#             send_event("shipment-events", {
+#                 "event": "SHIPMENT_STATUS_UPDATED",
+#                 "data": {
+#                     "shipment_id": shipment.id,
+#                     "order_id": shipment.order_id,
+#                     "status": shipment.status,
+#                     "carrier": shipment.carrier,
+#                     "tracking_number": shipment.tracking_number,
+#                     "timestamp": str(datetime.utcnow())
+#                 }
+#             })
+#             print(" sent ..event to kakfa---------------------------------------------------------------")
+
+#         except Exception as e:
+#             print("⚠️ Kafka failed but DB is OK:", str(e))
+#         print("✅ STEP 12: Returning updated shipment")
+#         shipment.allowed_actions = VALID_TRANSITIONS.get(shipment.status, [])
+
+#         return shipment
+
+#     except HTTPException as http_err:
+#         print(f"⚠️ HTTPException occurred: {http_err.detail}")
+#         raise
+
+#     except Exception as e:
+#         print("🔥 STEP ERROR: Exception occurred before commit")
+#         print(f"❌ Error: {str(e)}")
+
+#         print("🔵 Rolling back transaction")
+#         db.rollback()
+
+#         raise HTTPException(status_code=500, detail=str(e))
 # =========================
 # READ OPERATIONS
 # =========================
