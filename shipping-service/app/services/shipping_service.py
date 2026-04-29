@@ -344,8 +344,11 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db, locati
         db.refresh(shipment)
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         print("✅ STEP 12: Returning updated shipment")
 =======
+=======
+>>>>>>> Stashed changes
         # =========================
         # 🔥 SEND KAFKA EVENT (UNCHANGED)
         # =========================
