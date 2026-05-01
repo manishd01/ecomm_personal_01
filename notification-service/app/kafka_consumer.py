@@ -45,5 +45,9 @@ def start_consumer():
 
             handle_event(event)   # ✅ NOW THIS WORKS
 
+<<<<<<< HEAD
     thread = threading.Thread(target=consume, daemon=True)
+=======
+    thread = threading.Thread(target=consume)
+>>>>>>> abbe713be65c4a56ee72873fbf22dcbe9a8a4f01
     thread.start()

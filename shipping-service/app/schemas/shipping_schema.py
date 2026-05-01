@@ -18,6 +18,7 @@ class CreateShipment(BaseModel):
 # 🔹 Update request
 class UpdateShipmentStatus(BaseModel):
     status: str = Field(..., min_length=1, max_length=50)
+    location: Optional[str] = None
 
 
 # 🔹 Response schema
@@ -55,7 +56,7 @@ class TrackingCreate(BaseModel):
 
 class TrackingResponse(BaseModel):
     id: int
-    location: str
+    location: Optional[str] = ""
     status: str
     timestamp: datetime
     description: Optional[str] = None
@@ -67,6 +68,7 @@ class TrackingResponse(BaseModel):
         
 class ShipmentDetailResponse(ShipmentResponse):
     tracking_updates: list[TrackingResponse] = []
-    allowed_actions: Optional[List[Dict]] = []
+      # ✅ ADD THIS
+    allowed_actions: list = []
 
     

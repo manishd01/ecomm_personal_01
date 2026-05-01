@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import HTTPException
 from app.exceptions import OrderNotFoundError, ShipmentAlreadyExistsError
 from app.models.shipping_model import Shipment, ShipmentTracking
@@ -15,36 +17,77 @@ from app.kafka_producer import send_event   #kafka  thing
 ORDER_SERVICE_URL = "http://order-service:8000/api"
 CUSTOMER_SERVICE_URL = "http://customer-service:8000/api"
 
-# Valid status transitions
+# VALID_TRANSITIONS = {
+#     "CREATED": [
+#         {"type": "STATUS", "value": "SHIPPED"}
+#     ],
 
+#     # 🚚 after shipped → ONLY tracking
+#     "SHIPPED": [
+#         {"type": "TRACKING"}
+#     ],
+
+#     "IN_TRANSIT": [
+#         {"type": "TRACKING"}
+#     ],
+
+#     "OUT_FOR_DELIVERY": [
+#         {"type": "TRACKING"}
+#     ],
+
+#     "DELIVERED": [
+#         {"type": "STATUS", "value": "RETURN_REQUESTED"},
+#         {"type": "STATUS", "value": "REPLACEMENT_REQUESTED"}
+#     ],
+
+#     "RETURN_REQUESTED": [
+#         {"type": "STATUS", "value": "RETURNED"}
+#     ],
+
+#     "REPLACEMENT_REQUESTED": [
+#         {"type": "STATUS", "value": "REPLACED"}
+#     ],
+
+#     "RETURNED": [],
+#     "REPLACED": []
+# }
+
+# Valid status transitions
 VALID_TRANSITIONS = {
     "CREATED": [
-        {"type": "STATUS", "value": "SHIPPED", "label": "🚚 Ship Order"}
+        {"type": "STATUS", "value": "SHIPPED"}
     ],
 
+    # 🚚 After shipped → allow tracking + move to transit
     "SHIPPED": [
+        {"type": "STATUS", "value": "IN_TRANSIT"},
         {"type": "TRACKING", "label": "📍 Add Tracking Update"}
     ],
 
+    # 📦 In transit → allow tracking + next step
     "IN_TRANSIT": [
-        {"type": "STATUS", "value": "OUT_FOR_DELIVERY", "label": "📦 Out for Delivery"}
+        {"type": "STATUS", "value": "OUT_FOR_DELIVERY"},
+        {"type": "TRACKING", "label": "📍 Add Tracking Update"}
     ],
 
+    # 🚪 Out for delivery → allow tracking + delivery
     "OUT_FOR_DELIVERY": [
-        {"type": "STATUS", "value": "DELIVERED", "label": "✅ Mark Delivered"}
+        {"type": "STATUS", "value": "DELIVERED"},
+        {"type": "TRACKING", "label": "📍 Add Tracking Update"}
     ],
 
+    # ✅ Delivered → no tracking, only business flows
     "DELIVERED": [
-        {"type": "STATUS", "value": "RETURN_REQUESTED", "label": "↩️ Return"},
-        {"type": "STATUS", "value": "REPLACEMENT_REQUESTED", "label": "🔁 Replace"}
+        {"type": "STATUS", "value": "RETURN_REQUESTED"},
+        {"type": "STATUS", "value": "REPLACEMENT_REQUESTED"}
     ],
 
     "RETURN_REQUESTED": [
-        {"type": "STATUS", "value": "RETURNED", "label": "✔ Confirm Return"}
+        {"type": "STATUS", "value": "RETURNED"}
     ],
 
     "REPLACEMENT_REQUESTED": [
-        {"type": "STATUS", "value": "REPLACED", "label": "✔ Confirm Replacement"}
+        {"type": "STATUS", "value": "REPLACED"}
     ],
 
     "RETURNED": [],
@@ -176,68 +219,12 @@ def get_customer_city(order_id: int) -> str:
 
     return customer.get("city", "").lower()
 
-# def get_shipment_service(shipment_id: int, db):
-#     return db.query(Shipment).filter(
-#         Shipment.id == shipment_id
-#     ).first()
-
-def add_tracking_update_service(shipment_id: int, data, db):
-
-    shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
-
-    if not shipment:
-        return None
-
-    # 
-    status = (data.status or "IN_TRANSIT").upper().strip()
-
-    # 🔥 Validate tracking status
-    if status not in VALID_TRACKING_STATUSES:
-        raise HTTPException(400, "Invalid tracking status")
-
-    # 🔥 Prevent duplicate spam (optional but good)
-    last = db.query(ShipmentTracking)\
-        .filter(ShipmentTracking.shipment_id == shipment_id)\
-        .order_by(ShipmentTracking.timestamp.desc())\
-        .first()
-
-    if last and last.location == data.location and last.status == status:
-        raise HTTPException(400, "Duplicate tracking update")
-
-    # 🔥 Create tracking event
-    tracking = ShipmentTracking(
-        shipment_id=shipment_id,
-        location=data.location,
-        status=status,
-        description=data.description,
-    )
-
-    db.add(tracking)
-
-    # 🔥 Update shipment main status (only when needed)
-    if status == "OUT_FOR_DELIVERY":
-        shipment.status = "OUT_FOR_DELIVERY"
-
-    elif status == "DELIVERED":
-        shipment.status = "DELIVERED"
-        shipment.delivered_at = datetime.utcnow()
-
-    db.commit()
-    db.refresh(tracking)
-
-    return tracking
-
-# =========================
-# UPDATE STATUS
-# =========================
-def update_shipment_status_service(shipment_id: int, new_status: str, db):
+def update_shipment_status_service(shipment_id: int, new_status: str, db, location: Optional[str] = None):
     print("🔵 STEP 0: Function called")
     print(f"➡️ Shipment ID: {shipment_id}, Incoming Status: {new_status}")
 
     try:
-        print("🔵 STEP 1: Fetching shipment from DB")
+        print("🔵 STEP 1: Fetching shipment from DB") 
         shipment = db.query(Shipment).filter(
             Shipment.id == shipment_id
         ).first()
@@ -248,7 +235,7 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db):
 
         print(f"✅ STEP 2: Shipment found with current status: {shipment.status}")
 
-        new_status = new_status.upper()
+        new_status = new_status.upper().strip()
         print(f"🔵 STEP 3: Normalized new status: {new_status}")
 
         print("🔵 STEP 4: Checking transition validity")
@@ -261,31 +248,41 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db):
 
         print("✅ STEP 5: Transition valid")
 
-        # =========================
-        # SPECIAL LOGIC
-        # =========================
+        # ✅ UPDATE STATUS
+        print("🔵 STEP 6: Updating shipment status")
+        shipment.status = new_status
 
+        # ✅ ADD STATUS TRACKING EVENT
+        print("🔵 STEP 7: Creating status tracking entry")
+        tracking = ShipmentTracking(
+            shipment_id=shipment.id,
+            status=new_status,
+            description=f"Status changed to {new_status}",
+            event_type="STATUS_UPDATE",
+            timestamp=datetime.utcnow(),
+            location=location
+        )
+        db.add(tracking)
+        print("✅ STEP 8: Tracking entry created")
+        # =========================
+        # BUSINESS LOGIC (UNCHANGED)
+        # =========================
         if new_status == "SHIPPED":
-            print("🔵 STEP 6: Applying SHIPPED logic")
-
             shipment.tracking_number = generate_tracking_number()
-            print(f"   ➤ Generated tracking number: {shipment.tracking_number}")
 
             city = get_customer_city(shipment.order_id)
-            print(f"   ➤ Customer city: {city}")
-
             shipment.carrier = assign_carrier_by_city(city)
-            print(f"   ➤ Assigned carrier: {shipment.carrier}")
 
             shipment.estimated_delivery = datetime.utcnow() + timedelta(days=7)
-            print(f"   ➤ Estimated delivery set: {shipment.estimated_delivery}")
 
         elif new_status == "DELIVERED":
-            print("🔵 STEP 7: Applying DELIVERED logic")
-
             shipment.delivered_at = datetime.utcnow()
+<<<<<<< HEAD
             
             print(f"   ➤ Delivered at: {shipment.delivered_at}")
+=======
+
+>>>>>>> abbe713be65c4a56ee72873fbf22dcbe9a8a4f01
         elif new_status == "RETURN_REQUESTED":
             shipment.return_requested_at = datetime.utcnow()
             
@@ -299,13 +296,25 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db):
         elif new_status == "REPLACED":
             shipment.replaced_at = datetime.utcnow()
 
-        # =========================
-        # 🔥 ALWAYS UPDATE STATUS
-        # =========================
+        # ❌ NO COMMIT HERE (IMPORTANT FIX)
 
-        print("🔵 STEP 8: Updating shipment status")
-        shipment.status = new_status
+        # Kafka (keep after commit ideally, but keeping your logic)
+        try:
+            send_event("shipment-events", {
+                "event": "SHIPMENT_STATUS_UPDATED",
+                "data": {
+                    "shipment_id": shipment.id,
+                    "order_id": shipment.order_id,
+                    "status": shipment.status,
+                    "carrier": shipment.carrier,
+                    "tracking_number": shipment.tracking_number,
+                    "timestamp": str(datetime.utcnow())
+                }
+            })
+        except Exception as e:
+            print("⚠️ Kafka failed but DB is OK:", str(e))
 
+<<<<<<< HEAD
         print("🔵 STEP 9: Committing to DB")
         db.commit()
 
@@ -330,6 +339,8 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db):
         except Exception as e:
             print("⚠️ Kafka failed but DB is OK:", str(e))
         print("✅ STEP 12: Returning updated shipment")
+=======
+>>>>>>> abbe713be65c4a56ee72873fbf22dcbe9a8a4f01
         shipment.allowed_actions = VALID_TRANSITIONS.get(shipment.status, [])
 
         return shipment
@@ -339,13 +350,291 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db):
         raise
 
     except Exception as e:
-        print("🔥 STEP ERROR: Exception occurred before commit")
-        print(f"❌ Error: {str(e)}")
-
-        print("🔵 Rolling back transaction")
-        db.rollback()
-
+        print("🔥 STEP ERROR:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
+
+def add_tracking_update_service(shipment_id: int, data, db, location: Optional[str] = None):
+
+    shipment = db.query(Shipment).filter(
+        Shipment.id == shipment_id
+    ).first()
+
+    if not shipment:
+        return None
+
+    status = (data.status or "IN_TRANSIT").upper().strip()
+
+    if status not in VALID_TRACKING_STATUSES:
+        raise HTTPException(400, "Invalid tracking status")
+
+    last = db.query(ShipmentTracking)\
+        .filter(ShipmentTracking.shipment_id == shipment_id)\
+        .order_by(ShipmentTracking.timestamp.desc())\
+        .first()
+
+    if last and last.location == data.location and last.status == status:
+        raise HTTPException(400, "Duplicate tracking update")
+
+    print("🔵 STEP A: Creating tracking entry")
+
+    # =========================
+    # 1️⃣ FIRST: UPDATE SHIPMENT STATUS (ONLY IF VALID)
+    # =========================
+    if can_transition(shipment.status, status):
+        print(f"✅ Updating shipment status: {shipment.status} → {status}")
+        shipment.status = status
+
+        if status == "DELIVERED":
+            shipment.delivered_at = datetime.utcnow()
+        elif status == "RETURNED":
+            shipment.returned_at = datetime.utcnow()
+
+    # =========================
+    # 2️⃣ THEN: CREATE TRACKING ENTRY (ONCE ONLY)
+    # =========================
+    tracking = ShipmentTracking(
+        shipment_id=shipment_id,
+        location=data.location,
+        status=status,
+        description=data.description,
+        event_type="TRACKING_UPDATE",
+        timestamp=datetime.utcnow()
+    )
+
+    db.add(tracking)
+
+    # =========================
+    # 3️⃣ COMMIT ONCE HERE (IMPORTANT FIX)
+    # =========================
+    db.commit()
+    db.refresh(tracking)
+    db.refresh(shipment)
+
+    return tracking
+
+# def add_tracking_update_service(shipment_id: int, data, db, location: Optional[str] = None):
+
+#     shipment = db.query(Shipment).filter(
+#         Shipment.id == shipment_id
+#     ).first()
+
+#     if not shipment:
+#         return None
+
+#     status = (data.status or "IN_TRANSIT").upper().strip()
+
+#     # ✅ Validate tracking status
+#     if status not in VALID_TRACKING_STATUSES:
+#         raise HTTPException(400, "Invalid tracking status")
+
+#     # ✅ Prevent duplicate
+#     last = db.query(ShipmentTracking)\
+#         .filter(ShipmentTracking.shipment_id == shipment_id)\
+#         .order_by(ShipmentTracking.timestamp.desc())\
+#         .first()
+
+#     if last and last.location == data.location and last.status == status:
+#         raise HTTPException(400, "Duplicate tracking update")
+
+#     try:
+#         print("🔵 STEP A: Creating tracking entry")
+
+#         tracking = ShipmentTracking(
+#             shipment_id=shipment_id,
+#             location=data.location,
+#             status=status,
+#             description=data.description,
+#             event_type="TRACKING_UPDATE",
+#             timestamp=datetime.utcnow()
+#         )
+
+#         db.add(tracking)
+
+#         # =========================
+#         # ✅ SAFE AUTO STATUS UPDATE
+#         # =========================
+#         print("🔵 STEP B: Checking if status update needed")
+
+#         next_status = status
+
+#         # =========================
+#         # ✅ AUTO STATUS UPDATE (INSIDE TRACKING SERVICE)
+#         # =========================
+#         print("🔵 STEP B: Checking status update")
+
+#         next_status = status
+
+#         if can_transition(shipment.status, next_status):
+#             print(f"✅ Updating shipment status: {shipment.status} → {next_status}")
+
+#             # update shipment table
+#             shipment.status = next_status
+
+#             # optional timestamps
+#             if next_status == "DELIVERED":
+#                 shipment.delivered_at = datetime.utcnow()
+
+#             elif next_status == "RETURNED":
+#                 shipment.returned_at = datetime.utcnow()
+            
+#             db.add(shipment)
+            
+
+#         else:
+#             print(f"⚠️ No status change allowed: {shipment.status} → {next_status}")
+        
+
+#         # =========================
+#         # ✅ SINGLE COMMIT (IMPORTANT)
+#         # =========================
+#         print("🔵 STEP C: Committing transaction")
+#         # db.commit()
+
+#         # db.refresh(tracking)
+
+#         return tracking
+
+#     except HTTPException as http_err:
+#         print(f"⚠️ HTTPException: {http_err.detail}")
+#         db.rollback()
+#         raise
+
+#     except Exception as e:
+#         print("🔥 ERROR:", str(e))
+#         db.rollback()
+#         raise HTTPException(status_code=500, detail=str(e))
+    
+    
+    
+    
+# def update_shipment_status_service(shipment_id: int, new_status: str, db):
+#     print("🔵 STEP 0: Function called")
+#     print(f"➡️ Shipment ID: {shipment_id}, Incoming Status: {new_status}")
+#         # 1. Update main shipment table
+#     shipment.status = new_status
+
+#     # 2. Add tracking entry (ALWAYS)
+#     tracking = ShipmentTracking(
+#         shipment_id=shipment.id,
+#         status=new_status,
+#         description=f"Status changed to {new_status}"
+#     )
+
+#     db.add(tracking)
+
+#     try:
+#         print("🔵 STEP 1: Fetching shipment from DB") 
+#         shipment = db.query(Shipment).filter(
+#             Shipment.id == shipment_id
+#         ).first()
+
+#         if not shipment:
+#             print("❌ STEP FAIL: Shipment not found")
+#             return None
+
+#         print(f"✅ STEP 2: Shipment found with current status: {shipment.status}")
+
+#         new_status = new_status.upper()
+#         print(f"🔵 STEP 3: Normalized new status: {new_status}")
+
+#         print("🔵 STEP 4: Checking transition validity")
+#         if not can_transition(shipment.status, new_status):
+#             print(f"❌ STEP FAIL: Invalid transition {shipment.status} → {new_status}")
+#             raise HTTPException(
+#                 status_code=400,
+#                 detail=f"Invalid transition from {shipment.status} to {new_status}"
+#             )
+
+#         print("✅ STEP 5: Transition valid")
+
+#         # =========================
+#         # SPECIAL LOGIC
+#         # =========================
+
+#         if new_status == "SHIPPED":
+#             print("🔵 STEP 6: Applying SHIPPED logic")
+
+#             shipment.tracking_number = generate_tracking_number()
+#             print(f"   ➤ Generated tracking number: {shipment.tracking_number}")
+
+#             city = get_customer_city(shipment.order_id)
+#             print(f"   ➤ Customer city: {city}")
+
+#             shipment.carrier = assign_carrier_by_city(city)
+#             print(f"   ➤ Assigned carrier: {shipment.carrier}")
+
+#             shipment.estimated_delivery = datetime.utcnow() + timedelta(days=7)
+#             print(f"   ➤ Estimated delivery set: {shipment.estimated_delivery}")
+
+#         elif new_status == "DELIVERED":
+#             print("🔵 STEP 7: Applying DELIVERED logic")
+
+#             shipment.delivered_at = datetime.utcnow()
+            
+#             print(f"   ➤ Delivered at: {shipment.delivered_at}")
+#         elif new_status == "RETURN_REQUESTED":
+#             shipment.return_requested_at = datetime.utcnow()
+            
+
+#         elif new_status == "RETURNED":
+#             shipment.returned_at = datetime.utcnow()
+
+#         elif new_status == "REPLACEMENT_REQUESTED":
+#             shipment.replacement_requested_at = datetime.utcnow()
+
+#         elif new_status == "REPLACED":
+#             shipment.replaced_at = datetime.utcnow()
+
+#         # =========================
+#         # 🔥 ALWAYS UPDATE STATUS
+#         # =========================
+
+#         print("🔵 STEP 8: Updating shipment status")
+#         shipment.status = new_status
+
+#         print("🔵 STEP 9: Committing to DB")
+#         db.commit()
+
+#         print("✅ STEP 10: Commit successful")
+
+#         print("🔵 STEP 11: Refreshing object")
+#         db.refresh(shipment)
+#     #       kakfa event produceL:
+#     # 🔥 SEND EVENT AFTER COMMIT
+#         try: 
+#             print("sending event to kakfa---------------------------------------------------------------")
+#             send_event("shipment-events", {
+#                 "event": "SHIPMENT_STATUS_UPDATED",
+#                 "data": {
+#                     "shipment_id": shipment.id,
+#                     "order_id": shipment.order_id,
+#                     "status": shipment.status,
+#                     "carrier": shipment.carrier,
+#                     "tracking_number": shipment.tracking_number,
+#                     "timestamp": str(datetime.utcnow())
+#                 }
+#             })
+#             print(" sent ..event to kakfa---------------------------------------------------------------")
+
+#         except Exception as e:
+#             print("⚠️ Kafka failed but DB is OK:", str(e))
+#         print("✅ STEP 12: Returning updated shipment")
+#         shipment.allowed_actions = VALID_TRANSITIONS.get(shipment.status, [])
+
+#         return shipment
+
+#     except HTTPException as http_err:
+#         print(f"⚠️ HTTPException occurred: {http_err.detail}")
+#         raise
+
+#     except Exception as e:
+#         print("🔥 STEP ERROR: Exception occurred before commit")
+#         print(f"❌ Error: {str(e)}")
+
+#         print("🔵 Rolling back transaction")
+#         db.rollback()
+
+#         raise HTTPException(status_code=500, detail=str(e))
 # =========================
 # READ OPERATIONS
 # =========================
