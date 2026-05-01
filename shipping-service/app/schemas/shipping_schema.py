@@ -68,6 +68,7 @@ class TrackingResponse(BaseModel):
         
 class ShipmentDetailResponse(ShipmentResponse):
     tracking_updates: list[TrackingResponse] = []
-    allowed_actions: Optional[List[Dict]] = []
+      # ✅ ADD THIS
+    allowed_actions: list = []
 
     

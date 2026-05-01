@@ -50,7 +50,7 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
         const res = await shippingAPI.addTracking(id, payload.data);
 
         console.log("📍 Tracking added:", res.data);
-
+        const updated = await shippingAPI.getShipmentById(id);
         // For now (simple approach)
         // window.location.reload();
         // updateShipmentInUI(id, (prev) => ({
@@ -58,7 +58,6 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
         //   tracking_updates: [...(prev.tracking_updates || []), res.data],
         // }));
 
-        // const updated = await shippingAPI.getShipmentById(id);
         updateShipmentInUI(id, updated.data);
       }
 
@@ -137,74 +136,68 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
 
     // 🔥 ONLY TRACKING EVENTS HERE (NO SYSTEM EVENTS)
     shipment.tracking_updates?.forEach((t) => {
-      if (t.event_type === "STATUS_UPDATE") return; // skip backend status logs
-
-      // also skip SHIPPED (already handled above)
-      if (t.status === "SHIPPED") return;
-
       timeline.push({
-        type: "TRACKING",
+        type: t.event_type === "STATUS_UPDATE" ? "STATUS" : "TRACKING",
         label: t.status?.replaceAll("_", " ") || "Unknown",
         location: t.location,
         description: t.description,
         time: t.timestamp,
       });
     });
+    // // OUT FOR DELIVERY
+    // if (
+    //   shipment.status === "OUT_FOR_DELIVERY" ||
+    //   shipment.status === "DELIVERED"
+    // ) {
+    //   timeline.push({
+    //     type: "STATUS",
+    //     label: "Out for Delivery",
+    //     time: shipment.updated_at,
+    //   });
+    // }
 
-    // OUT FOR DELIVERY
-    if (
-      shipment.status === "OUT_FOR_DELIVERY" ||
-      shipment.status === "DELIVERED"
-    ) {
-      timeline.push({
-        type: "STATUS",
-        label: "Out for Delivery",
-        time: shipment.updated_at,
-      });
-    }
+    // // DELIVERED
+    // if (shipment.delivered_at) {
+    //   timeline.push({
+    //     type: "STATUS",
+    //     label: "Delivered",
+    //     time: shipment.delivered_at,
+    //   });
+    // }
 
-    // DELIVERED
-    if (shipment.delivered_at) {
-      timeline.push({
-        type: "STATUS",
-        label: "Delivered",
-        time: shipment.delivered_at,
-      });
-    }
+    // // RETURN FLOW
+    // if (shipment.return_requested_at) {
+    //   timeline.push({
+    //     type: "STATUS",
+    //     label: "Return Requested",
+    //     time: shipment.return_requested_at,
+    //   });
+    // }
 
-    // RETURN FLOW
-    if (shipment.return_requested_at) {
-      timeline.push({
-        type: "STATUS",
-        label: "Return Requested",
-        time: shipment.return_requested_at,
-      });
-    }
+    // if (shipment.returned_at) {
+    //   timeline.push({
+    //     type: "STATUS",
+    //     label: "Returned Successfully",
+    //     time: shipment.returned_at,
+    //   });
+    // }
 
-    if (shipment.returned_at) {
-      timeline.push({
-        type: "STATUS",
-        label: "Returned Successfully",
-        time: shipment.returned_at,
-      });
-    }
+    // // REPLACEMENT FLOW
+    // if (shipment.replacement_requested_at) {
+    //   timeline.push({
+    //     type: "STATUS",
+    //     label: "Replacement Requested",
+    //     time: shipment.replacement_requested_at,
+    //   });
+    // }
 
-    // REPLACEMENT FLOW
-    if (shipment.replacement_requested_at) {
-      timeline.push({
-        type: "STATUS",
-        label: "Replacement Requested",
-        time: shipment.replacement_requested_at,
-      });
-    }
-
-    if (shipment.replaced_at) {
-      timeline.push({
-        type: "STATUS",
-        label: "Product Replaced",
-        time: shipment.replaced_at,
-      });
-    }
+    // if (shipment.replaced_at) {
+    //   timeline.push({
+    //     type: "STATUS",
+    //     label: "Product Replaced",
+    //     time: shipment.replaced_at,
+    //   });
+    // }
 
     console.log("timelines: ", timeline);
 

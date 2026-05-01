@@ -51,10 +51,8 @@ function ShipmentStatusModal({ shipment, onClose, onConfirm }) {
       setLoading(false);
     }
   };
-  const hasTrackingAction = actions.some((a) => a.type === "TRACKING");
-  const hasShipAction = actions.some(
-    (a) => a.type === "STATUS" && a.value === "SHIPPED",
-  );
+  const hasStatusActions = actions.some((a) => a.type === "STATUS");
+  const hasTrackingActions = actions.some((a) => a.type === "TRACKING");
 
   return (
     <div className="modal-overlay">
@@ -69,76 +67,118 @@ function ShipmentStatusModal({ shipment, onClose, onConfirm }) {
           <strong>Status:</strong> {shipment.status.replaceAll("_", " ")}
         </p>
 
-        {actions.length > 0 && (
-          <div className="input-group">
-            <h4>Available Actions</h4>
+        {/* 🔥 TRACKING + SHIPPED INPUTS FIRST (FIXED ORDER) */}
 
-            {actions.map((action, index) => (
-              <button
-                key={index}
-                className="confirm-btn"
-                style={{ margin: "5px", width: "100%" }}
-                disabled={loading || (requiresLocation(action) && !location)}
-                onClick={() => handleActionClick(action)}
-              >
-                {action.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* 🔥 TRACKING + SHIPPED INPUTS */}
         {/* {actions.some(
         //   (a) =>
         //     a.type === "TRACKING" ||
         //     (a.type === "STATUS" && a.value === "SHIPPED"),
         // ) && ( */}
+
         {/* ✅ SHIPPED → ONLY LOCATION */}
-        {hasShipAction && (
+        {hasStatusActions && (
           <div className="input-group">
-            <label>📍 Location</label>
-            <input
-              className="input-field"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. Ludhiana Hub"
-            />
+            <h4>Available Actions</h4>
+
+            {actions
+              .filter((a) => a.type === "STATUS")
+              .map((action, i) => (
+                <div key={i} style={{ marginBottom: "12px" }}>
+                  {/* 📍 Show location ONLY if required */}
+                  {requiresLocation(action) && (
+                    <>
+                      <label>📍 Location</label>
+                      <input
+                        className="input-field"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        placeholder="e.g. Ludhiana Hub"
+                      />
+                    </>
+                  )}
+
+                  <button
+                    className="confirm-btn"
+                    disabled={
+                      loading || (requiresLocation(action) && !location)
+                    }
+                    onClick={() => handleActionClick(action)}
+                    style={{ width: "100%", marginTop: "6px" }}
+                  >
+                    🚚 Mark as {action.value.replaceAll("_", " ")}
+                  </button>
+                </div>
+              ))}
           </div>
         )}
 
         {/* ✅ TRACKING → FULL FIELDS */}
-        {hasTrackingAction && (
-          <div className="input-group">
-            <label>📍 Location</label>
-            <input
-              className="input-field"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. Delhi Hub"
-            />
+        {hasTrackingActions && (
+          <>
+            <div className="input-group">
+              <h4>Update Tracking</h4>
 
-            <label>📦 Tracking Status</label>
-            <select
-              className="input-field"
-              value={trackingStatus}
-              onChange={(e) => setTrackingStatus(e.target.value)}
-            >
-              <option value="IN_TRANSIT">In Transit</option>
-              <option value="ARRIVED_AT_HUB">Arrived at Hub</option>
-              <option value="DEPARTED_HUB">Departed Hub</option>
-              <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
-              <option value="DELIVERED">Delivered</option>
-            </select>
+              <label>📍 Location</label>
+              <input
+                className="input-field"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. Ludhiana Hub"
+              />
 
-            <label>📝 Description</label>
-            <input
-              className="input-field"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional note"
-            />
-          </div>
+              <label>📦 Tracking Status</label>
+              <select
+                className="input-field"
+                value={trackingStatus}
+                onChange={(e) => setTrackingStatus(e.target.value)}
+              >
+                <option value="IN_TRANSIT">In Transit</option>
+                <option value="ARRIVED_AT_HUB">Arrived at Hub</option>
+                <option value="DEPARTED_HUB">Departed Hub</option>
+                <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
+                <option value="DELIVERED">Delivered</option>
+              </select>
+
+              <label>📝 Description</label>
+              <input
+                className="input-field"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Optional note"
+              />
+            </div>
+
+            <div className="input-group">
+              <button
+                className="confirm-btn"
+                disabled={loading || !location}
+                onClick={() => handleActionClick({ type: "TRACKING" })}
+                style={{ width: "100%" }}
+              >
+                📍 Update Tracking
+              </button>
+            </div>
+          </>
         )}
+        {/* 🔥 ACTION BUTTONS (FIXED DISABLE LOGIC)
+        {actions.length > 0 && (
+          <div className="input-group">
+            <h4>Available Actions</h4>
+
+            {trackingStatus && (
+              <div className="input-group">
+                <button
+                  className="confirm-btn"
+                  disabled={loading || !location}
+                  onClick={() => handleActionClick(trackingStatus)}
+                  style={{ width: "100%" }}
+                >
+                  📍 Update Tracking
+                </button>
+              </div>
+            )}
+          </div>
+        )} */}
 
         {/* 🔥 CLOSE */}
         <div className="modal-actions">

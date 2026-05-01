@@ -1,3 +1,6 @@
+
+
+
 from typing import Optional
 
 from fastapi import HTTPException
@@ -87,7 +90,8 @@ def add_tracking_controller(
 
         if not tracking:
             raise HTTPException(404, "Shipment not found")
-
+        db.commit()   # ✅ ADD THIS
+        db.refresh(tracking)
         return tracking
 
     except HTTPException:
@@ -132,6 +136,9 @@ def update_shipment_status(shipment_id: int, new_status: str, db: Session, locat
 
         if not shipment:
             raise HTTPException(404, "Shipment not found")
+        
+        db.commit()   # ✅ ADD THIS
+        db.refresh(shipment)
 
         return shipment
 

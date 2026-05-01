@@ -162,7 +162,7 @@ export const shippingAPI = {
     }),
 
   // 🔍 Get shipment by ID
-  getById: (shipmentId) =>
+  getShipmentById: (shipmentId) =>
     apiRequest(`${API_BASE_URLS.SHIPPING}/shipments/${shipmentId}`),
 
   // 📋 List all shipments (with pagination)

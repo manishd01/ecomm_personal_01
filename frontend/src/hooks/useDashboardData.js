@@ -99,20 +99,9 @@ export const useDashboardData = () => {
         if (s.id !== id) return s;
 
         return {
-          ...s,
           ...updatedShipment,
-
-          // ✅ ALWAYS prefer latest allowed_actions
           allowed_actions:
             updatedShipment.allowed_actions ?? s.allowed_actions ?? [],
-
-          // ✅ merge tracking safely
-          tracking_updates: updatedShipment.tracking_updates
-            ? [
-                ...(s.tracking_updates || []),
-                ...updatedShipment.tracking_updates,
-              ]
-            : s.tracking_updates || [],
         };
       }),
     );
