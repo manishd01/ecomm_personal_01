@@ -9,8 +9,4 @@ python-decouple==3.8
 pytest==7.4.3
 pytest-asyncio==0.21.1
 pymysql
-<<<<<<< HEAD
 kafka-python
-=======
-cryptography
->>>>>>> abbe713be65c4a56ee72873fbf22dcbe9a8a4f01

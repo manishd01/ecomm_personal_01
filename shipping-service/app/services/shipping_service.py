@@ -277,12 +277,9 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db, locati
 
         elif new_status == "DELIVERED":
             shipment.delivered_at = datetime.utcnow()
-<<<<<<< HEAD
-            
-            print(f"   ➤ Delivered at: {shipment.delivered_at}")
-=======
 
->>>>>>> abbe713be65c4a56ee72873fbf22dcbe9a8a4f01
+            print(f"   ➤ Delivered at: {shipment.delivered_at}")
+
         elif new_status == "RETURN_REQUESTED":
             shipment.return_requested_at = datetime.utcnow()
             
@@ -299,8 +296,9 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db, locati
         # ❌ NO COMMIT HERE (IMPORTANT FIX)
 
         # Kafka (keep after commit ideally, but keeping your logic)
+        # Kafka event for shipment status update
         try:
-            send_event("shipment-events", {
+            send_event("shipment-events", { 
                 "event": "SHIPMENT_STATUS_UPDATED",
                 "data": {
                     "shipment_id": shipment.id,
@@ -314,7 +312,6 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db, locati
         except Exception as e:
             print("⚠️ Kafka failed but DB is OK:", str(e))
 
-<<<<<<< HEAD
         print("🔵 STEP 9: Committing to DB")
         db.commit()
 
@@ -324,23 +321,22 @@ def update_shipment_status_service(shipment_id: int, new_status: str, db, locati
         db.refresh(shipment)
     #       kakfa event produceL:
     # 🔥 SEND EVENT AFTER COMMIT
-        try:
-            send_event("shipment-events", {
-                "event": "SHIPMENT_STATUS_UPDATED",
-                "data": {
-                    "shipment_id": shipment.id,
-                    "order_id": shipment.order_id,
-                    "status": shipment.status,
-                    "carrier": shipment.carrier,
-                    "tracking_number": shipment.tracking_number,
-                    "timestamp": str(datetime.utcnow())
-                }
-            })
-        except Exception as e:
-            print("⚠️ Kafka failed but DB is OK:", str(e))
+        # try:
+        #     send_event("shipment-events", {
+        #         "event": "SHIPMENT_STATUS_UPDATED",
+        #         "data": {
+        #             "shipment_id": shipment.id,
+        #             "order_id": shipment.order_id,
+        #             "status": shipment.status,
+        #             "carrier": shipment.carrier,
+        #             "tracking_number": shipment.tracking_number,
+        #             "timestamp": str(datetime.utcnow())
+        #         }
+        #     })
+        # except Exception as e:
+        #     print("⚠️ Kafka failed but DB is OK:", str(e))
         print("✅ STEP 12: Returning updated shipment")
-=======
->>>>>>> abbe713be65c4a56ee72873fbf22dcbe9a8a4f01
+
         shipment.allowed_actions = VALID_TRANSITIONS.get(shipment.status, [])
 
         return shipment
@@ -384,10 +380,10 @@ def add_tracking_update_service(shipment_id: int, data, db, location: Optional[s
         print(f"✅ Updating shipment status: {shipment.status} → {status}")
         shipment.status = status
 
-        if status == "DELIVERED":
-            shipment.delivered_at = datetime.utcnow()
-        elif status == "RETURNED":
-            shipment.returned_at = datetime.utcnow()
+    if status == "DELIVERED":
+        shipment.delivered_at = datetime.utcnow()
+    elif status == "RETURNED":
+        shipment.returned_at = datetime.utcnow()
 
     # =========================
     # 2️⃣ THEN: CREATE TRACKING ENTRY (ONCE ONLY)
@@ -402,10 +398,25 @@ def add_tracking_update_service(shipment_id: int, data, db, location: Optional[s
     )
 
     db.add(tracking)
-
+    # adding kafka send_sevent for trakcing as
+    
+    send_event("shipment-events", {
+        "event": "TRACKING_UPDATED",
+        "data": {
+            
+            "shipment_id": shipment.id,
+            "order_id": shipment.order_id,
+            "status": status,
+            "location": data.location,
+            "description": data.description, 
+            "timestamp": str(datetime.utcnow())
+        }
+    })
     # =========================
     # 3️⃣ COMMIT ONCE HERE (IMPORTANT FIX)
     # =========================
+    
+    
     db.commit()
     db.refresh(tracking)
     db.refresh(shipment)

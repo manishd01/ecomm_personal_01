@@ -541,35 +541,60 @@ p {
   justify-content: space-between;
   align-items: center;
 }
-
 /* Status badge */
 .status-badge {
   padding: 5px 10px;
   border-radius: 6px;
   color: white;
   font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
+/* CREATED */
 .status-badge.created {
   background: #3498db; /* blue */
 }
 
+/* SHIPPED */
 .status-badge.shipped {
   background: #f39c12; /* orange */
 }
 
+/* IN TRANSIT */
+.status-badge.in_transit {
+  background: #16a085; /* teal */
+}
+
+/* OUT FOR DELIVERY */
 .status-badge.out_for_delivery {
   background: #8e44ad; /* purple */
 }
 
+/* DELIVERED */
 .status-badge.delivered {
   background: #27ae60; /* green */
 }
 
+/* RETURN REQUESTED */
+.status-badge.return_requested {
+  background: #d35400; /* dark orange */
+}
+
+/* RETURNED */
 .status-badge.returned {
   background: #c0392b; /* dark red */
 }
 
+/* REPLACEMENT REQUESTED */
+.status-badge.replacement_requested {
+  background: #2c3e50; /* dark blue gray */
+}
+
+/* REPLACED */
+.status-badge.replaced {
+  background: #1abc9c; /* aqua green */
+}
 /* Body */
 .shipment-body p {
   margin: 5px 0;

@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter
 from app.controllers.order_controller import (
-    get_order, create_order, update_order, delete_order,get_all_orders_con
+    get_order, create_order, update_order, delete_order,get_all_orders_con,update_order_status_controller
 )
 from app.schemas.order_schema import OrderCreate, OrderUpdate, OrderResponse
 
@@ -33,6 +33,14 @@ def modify_order(order_id: int, order_data: OrderUpdate):
 def remove_order(order_id: int):
     return delete_order(order_id)
 
+
+@router.post("/orders/{order_id}/status")
+def update_order_status(
+    order_id: int,
+    data: OrderUpdate,
+
+):
+    return update_order_status_controller(order_id, data)
 
 
 @router.get("/health")

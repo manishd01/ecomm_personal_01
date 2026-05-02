@@ -53,7 +53,7 @@ function ShipmentsList({ shipments, updateShipmentInUI, addShipmentToUI }) {
 
         console.log("✅ Fresh shipment:", updated.data);
         console.log("📍 Tracking added:", res.data);
-        const updated = await shippingAPI.getShipmentById(id);
+        // const updated = await shippingAPI.getShipmentById(id);
         // For now (simple approach)
         // window.location.reload();
         // updateShipmentInUI(id, (prev) => ({
