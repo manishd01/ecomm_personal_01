@@ -1,6 +1,29 @@
 version: "3.9"
 
 services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.1
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.2.1
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -11,6 +34,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   order-service:
     build:
@@ -102,6 +130,8 @@ services:
     depends_on:
       mysql:
         condition: service_started
+      kafka:
+        condition: service_started
     volumes:
       - ./notification-service:/app
 
@@ -119,6 +149,8 @@ services:
       - DB_NAME=shipping_db
     depends_on:
       mysql:
+        condition: service_started
+      kafka:
         condition: service_started
     volumes:
       - ./shipping-service:/app
@@ -148,100 +180,4 @@ volumes:
   mysql_data:
 
 # services:
-#   zookeeper:
-#     image: confluentinc/cp-zookeeper:7.4.0
-#     container_name: zookeeper
-#     environment:
-#       ZOOKEEPER_CLIENT_PORT: 2181
-#       ZOOKEEPER_TICK_TIME: 2000
-
-#   kafka:
-#     image: confluentinc/cp-kafka:7.4.0
-#     container_name: kafka
-#     ports:
-#       - "9092:9092"
-#     environment:
-#       KAFKA_BROKER_ID: 1
-#       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-#       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-#       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-#       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#     depends_on:
-#       - zookeeper
-
-#   mysql:
-#     image: mysql:8.0
-#     container_name: mysql
-#     ports:
-#       - "3307:3306"
-#     environment:
-#       MYSQL_ROOT_PASSWORD: root
-#     volumes:
-#       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-#     healthcheck:
-#       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-#       timeout: 20s
-#       retries: 10
-#       interval: 5s
-
-#   order-service:
-#     build:
-#       context: ./order-service
-#     container_name: order-service
-#     ports:
-#       - "8000:8000"
-#     environment:
-#       - PYTHONPATH=/app
-#     depends_on:
-#       kafka:
-#         condition: service_started
-#       mysql:
-#         condition: service_healthy
-
-#   inventory-service:
-#     build:
-#       context: ./inventory-service
-#     container_name: inventory-service
-#     ports:
-#       - "8001:8001"
-#     depends_on:
-#       kafka:
-#         condition: service_started
-#       mysql:
-#         condition: service_healthy
-
-#   payment-service:
-#     build:
-#       context: ./payment-service
-#     container_name: payment-service
-#     ports:
-#       - "8002:8002"
-#     depends_on:
-#       kafka:
-#         condition: service_started
-#       mysql:
-#         condition: service_healthy
-
-#   notification-service:
-#     build:
-#       context: ./notification-service
-#     container_name: notification-service
-#     ports:
-#       - "8003:8003"
-#     depends_on:
-#       - kafka
-
-#   frontend:
-#     build:
-#       context: ./frontend
-#     container_name: frontend
-#     ports:
-#       - "3000:3000"
-#     stdin_open: true
-#     tty: true
-#     depends_on:
-#       - order-service
-#       - inventory-service
-#       - payment-service
-#       - notification-service
 

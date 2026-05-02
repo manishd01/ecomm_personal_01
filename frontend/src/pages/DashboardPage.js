@@ -23,6 +23,7 @@ function DashboardPage() {
     error,
     servicesHealth,
     updateShipmentInUI,
+    addShipmentToUI,
     fetchData,
   } = useDashboardData();
 
@@ -68,6 +69,7 @@ function DashboardPage() {
             <ShipmentsList
               shipments={shipments}
               updateShipmentInUI={updateShipmentInUI}
+              addShipmentToUI={addShipmentToUI}
             />
           </>
         )}

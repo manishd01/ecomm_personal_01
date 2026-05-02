@@ -3,6 +3,8 @@ from app.routes.notification_routes import router as notification_router
 from app.database import Base, engine
 from app.models.notification_model import Notification
 from fastapi.middleware.cors import CORSMiddleware
+import threading
+from app.kafka_consumer import start_consumer
 
 app = FastAPI()
 
@@ -31,3 +33,7 @@ def health():
 # @app.on_event("startup")
 # def startup():
 #     #Base.metadata.create_all(bind=engine)
+
+@app.on_event("startup")
+def start_kafka():
+    start_consumer()

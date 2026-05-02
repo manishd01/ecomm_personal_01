@@ -162,7 +162,7 @@ export const shippingAPI = {
     }),
 
   // 🔍 Get shipment by ID
-  getById: (shipmentId) =>
+  getShipmentById: (shipmentId) =>
     apiRequest(`${API_BASE_URLS.SHIPPING}/shipments/${shipmentId}`),
 
   // 📋 List all shipments (with pagination)
@@ -181,6 +181,15 @@ export const shippingAPI = {
   // 📦 Get shipments by order
   getByOrder: (orderId) =>
     apiRequest(`${API_BASE_URLS.SHIPPING}/orders/${orderId}/shipments`),
+
+  addTracking: (shipmentId, trackingData) =>
+    apiRequest(`${API_BASE_URLS.SHIPPING}/shipments/${shipmentId}/tracking`, {
+      method: "POST",
+      body: JSON.stringify(trackingData),
+    }),
+
+  getNextActions: (shipmentId) =>
+    shippingAPI(`/shipments/${shipmentId}/next-actions`),
 
   // ❤️ Health check
   health: () => apiRequest(`${API_BASE_URLS.SHIPPING}/health`),

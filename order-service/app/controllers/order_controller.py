@@ -5,7 +5,8 @@ from app.services.order_service import (
     create_new_order,
     update_existing_order,
     delete_order_by_id,
-    get_all_orders_Service
+    get_all_orders_Service,
+    update_order_status_service
 )
 
 def get_order(order_id: int):
@@ -31,3 +32,16 @@ def delete_order(order_id: int):
     if not delete_order_by_id(order_id):
         raise HTTPException(status_code=404, detail="Order not found")
     return {"detail": "Order deleted successfully"}
+
+
+def update_order_status_controller(order_id, data):
+
+    try:
+        return update_order_status_service(
+            order_id,
+            data.status,
+        
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

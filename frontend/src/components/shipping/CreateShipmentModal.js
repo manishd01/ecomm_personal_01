@@ -48,13 +48,16 @@ function CreateShipmentModal({ onClose, onSuccess }) {
     try {
       setLoading(true);
 
-      await shippingAPI.create({
+      const res = await shippingAPI.create({
         order_id: Number(selectedOrder),
       });
 
+      // const newShipment = res.data;
+      const fullShipment = await shippingAPI.getShipmentById(res.data.id);
+      console.log("full details:", fullShipment);
       onClose();
 
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess(fullShipment.data);
     } catch (err) {
       console.error(err);
       alert("Failed to create shipment");

@@ -1,15 +1,38 @@
+
+
+
+from typing import Optional
+
 from fastapi import HTTPException
 from app.exceptions import OrderNotFoundError, ShipmentAlreadyExistsError
 from sqlalchemy.orm import Session
+from app.schemas.shipping_schema import TrackingCreate
 from app.services.shipping_service import (
     create_shipment_service,
     update_shipment_status_service,
     get_shipment_service,
     get_shipments_by_order_service,
-    notify_order_shipped
+    notify_order_shipped,
+    add_tracking_update_service,
+    get_next_actions_service
 )
 
 
+
+def get_next_actions_controller(shipment_id: int, db):
+    try:
+        result = get_next_actions_service(shipment_id, db)
+
+        if not result:
+            raise HTTPException(404, "Shipment not found")
+
+        return result
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        raise HTTPException(500, str(e))
 # =========================
 # CREATE
 # =========================
@@ -51,21 +74,71 @@ def get_shipment(shipment_id: int, db: Session):
 def get_shipments_by_order(order_id: int, db: Session):
     return get_shipments_by_order_service(order_id, db)
 
+def add_tracking_controller(
+    shipment_id: int,
+    data: TrackingCreate,
+    db: Session,
+    location: Optional[str] = None
+):
+    try:
+        print(f"Adding tracking update for shipment controller {shipment_id}")
+        tracking = add_tracking_update_service(
+            shipment_id,
+            data,
+            db,location
+        )
+
+        if not tracking:
+            raise HTTPException(404, "Shipment not found")
+        db.commit()   # ✅ ADD THIS
+        db.refresh(tracking)
+        return tracking
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        raise HTTPException(500, str(e))
+    
+def get_next_actions_controller(shipment_id: int, db):
+    try:
+        print(f"Fetching next actions for shipment {shipment_id}")
+
+        result = get_next_actions_service(shipment_id, db)
+
+        if not result:
+            print("❌ Shipment not found")
+            raise HTTPException(404, "Shipment not found")
+
+        print(f"✅ Allowed actions: {result}")
+
+        return result
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        print(f"🔥 Error in get_next_actions_controller: {str(e)}")
+        raise HTTPException(500, str(e))
 
 # =========================
 # UPDATE STATUS
 # =========================
-def update_shipment_status(shipment_id: int, new_status: str, db: Session):
+def update_shipment_status(shipment_id: int, new_status: str, db: Session, location: Optional[str] = None):
 
     try:
         shipment = update_shipment_status_service(
             shipment_id,
             new_status,
-            db
+            db,
+            location
         )
 
         if not shipment:
             raise HTTPException(404, "Shipment not found")
+        
+        db.commit()   # ✅ ADD THIS
+        db.refresh(shipment)
 
         return shipment
 

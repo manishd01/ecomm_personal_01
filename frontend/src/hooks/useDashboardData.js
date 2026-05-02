@@ -90,9 +90,20 @@ export const useDashboardData = () => {
     fetchData();
   }, []);
 
+  const addShipmentToUI = (newShipment) => {
+    setShipments((prev) => [newShipment, ...prev]);
+  };
   const updateShipmentInUI = (id, updatedShipment) => {
     setShipments((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...updatedShipment } : s)),
+      prev.map((s) => {
+        if (s.id !== id) return s;
+
+        return {
+          ...updatedShipment,
+          allowed_actions:
+            updatedShipment.allowed_actions ?? s.allowed_actions ?? [],
+        };
+      }),
     );
   };
 
@@ -107,6 +118,7 @@ export const useDashboardData = () => {
     error,
     servicesHealth,
     updateShipmentInUI,
+    addShipmentToUI,
     fetchData,
   };
 };

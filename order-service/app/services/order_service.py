@@ -2,6 +2,9 @@ from fastapi import HTTPException
 from app.models.order_model import Order
 import requests
 from app.database import SessionLocal
+from app.kafka_producer import send_event
+from datetime  import datetime
+
 INVENTORY_SERVICE_URL = "http://inventory-service:8000/api"
 CUSTOMER_SERVICE_URL = "http://customer-service:8000/api"
 
@@ -128,6 +131,56 @@ def update_existing_order(order_id: int, order_data):
 
     finally:
         db.close()
+        
+        
+def update_order_status_service(order_id, status):
+    db = SessionLocal()
+    order = db.query(Order).filter(
+        Order.id == order_id
+    ).first()
+
+    if not order:
+        return {
+            "message": "Order not found"
+        }
+
+    order.status = status
+
+    db.commit()
+    db.refresh(order)
+
+    print("✅ Order status updated from shipping-service")
+
+    print("✅ Order status updated from shipping-service")
+
+    # =========================
+    # SEND KAFKA EVENT
+    # =========================
+    try:
+        send_event("order-events", {
+            "event": "ORDER_STATUS_UPDATED",
+            "data": {
+                "order_id": order.id,
+                "customer_id": order.customer_id,
+                "status": order.status,
+                "timestamp": str(datetime.utcnow())
+            }
+        })
+
+        print("✅ Kafka event sent")
+
+    except Exception as e:
+        print("⚠️ Kafka send failed:", str(e))
+
+
+    
+    return {
+        "message": "Order status updated",
+        "order_id": order.id,
+        "status": order.status
+    }
+    
+    
 
 
 def delete_order_by_id(order_id: int):

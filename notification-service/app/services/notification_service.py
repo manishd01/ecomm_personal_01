@@ -18,10 +18,14 @@ def get_unread_notifications(customer_id: int, db: Session):
 
 
 def create_new_notification(notification_data, db: Session):
-    new_notification = Notification(**notification_data.dict())
+    if hasattr(notification_data, "dict"):     # imp -> for Kafka flow -> sends plain JSON → becomes dict
+        notification_data = notification_data.dict()
+        
+    new_notification = Notification(**notification_data)# no need to convert now
     db.add(new_notification)
     db.commit()
     db.refresh(new_notification)
+    print("data saevd for notification")
     return new_notification
 
 
