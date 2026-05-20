@@ -22,6 +22,7 @@ function NotificationsList({ notifications }) {
               <div className="notification-meta">
                 <span className="badge">{notification.notification_type}</span>
                 <span>Customer: {notification.customer_id}</span>
+                <span>Order: {notification.order_id}</span>
               </div>
             </div>
           ))}

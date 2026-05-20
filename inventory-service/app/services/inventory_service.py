@@ -2,11 +2,12 @@ from sqlalchemy.orm import Session
 from app.models.inventory_model import Inventory
 from fastapi import HTTPException
 
+
 def decrease_inventory_stock(item_id: int, quantity: int, db: Session):
     item = (
         db.query(Inventory)
         .filter(Inventory.id == item_id)
-        .with_for_update()   # 🔐 prevents race condition
+        .with_for_update()  # 🔐 prevents race condition
         .first()
     )
 
@@ -16,29 +17,32 @@ def decrease_inventory_stock(item_id: int, quantity: int, db: Session):
     if item.quantity < quantity:
         raise HTTPException(status_code=400, detail="Not enough stock")
 
-    item.quantity -= quantity   # ✅ correct logic
+    item.quantity -= quantity  # ✅ correct logic
 
-    db.commit() 
+    db.commit()
     db.refresh(item)
 
     return item
 
+
 def get_inventory_by_id(item_id: int, db: Session):
     return db.query(Inventory).filter(Inventory.id == item_id).first()
+
 
 def get_all_inventory_items(db: Session):
     return db.query(Inventory).all()
 
 
 def create_new_inventory(item_data, db):
-    existing = db.query(Inventory).filter(
-        Inventory.model_number == item_data.model_number
-    ).first()
+    existing = (
+        db.query(Inventory)
+        .filter(Inventory.model_number == item_data.model_number)
+        .first()
+    )
 
     if existing:
         raise HTTPException(
-            status_code=400,
-            detail="Product with this model_number already exists"
+            status_code=400, detail="Product with this model_number already exists"
         )
 
     new_item = Inventory(**item_data.dict())
@@ -71,4 +75,3 @@ def delete_inventory_by_id(item_id: int, db: Session):
     db.delete(item)
     db.commit()
     return True
-

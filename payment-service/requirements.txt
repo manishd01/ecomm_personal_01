@@ -7,3 +7,4 @@ requests
 alembic
 pytest
 httpx
+kafka-python

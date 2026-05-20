@@ -4,6 +4,9 @@ from app.database import Base, engine
 from app.models.order_model import Order
 from fastapi.middleware.cors import CORSMiddleware
 
+# from app.kafka.order_consumer import
+
+
 app = FastAPI()
 
 app.add_middleware(
@@ -16,14 +19,16 @@ app.add_middleware(
 # Include order routes
 app.include_router(order_router, prefix="/api")
 
+
 @app.get("/health")
 def health():
     return {"status": "Order Service is running"}
 
-# @app.on_event("startup")
-# def startup():
-#     #Base.metadata.create_all(bind=engine)
 
+# @app.on_event("startup")
+# def start_kafka():
+#     print("🔥 FASTAPI STARTUP RUNNING")
+#     start_consumer()
 
 
 # cd ecommerce-microservices
