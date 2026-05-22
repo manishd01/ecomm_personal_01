@@ -109,11 +109,14 @@ def start_consumer():
                         send_event("shipment-events-dlq", event)
 
                     # ✅ ONLY AFTER SUCCESS
-                    consumer.commit()
+                    # consumer.commit()
 
         except Exception as e:
 
             print("🔥 CONSUMER THREAD CRASHED:", str(e))
+
+        finally:
+            consumer.commit()
 
     thread = threading.Thread(target=consume)
 

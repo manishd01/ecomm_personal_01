@@ -130,6 +130,7 @@ def create_shipment_service(order_id: int, db):
     if existing:
         raise ShipmentAlreadyExistsError()
 
+    print(f"📦 Creating shipment for order_id={order_id}", "and other data is:")
     shipment = Shipment(order_id=order_id, status="CREATED")
 
     db.add(shipment)

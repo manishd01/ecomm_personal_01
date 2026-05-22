@@ -4,6 +4,7 @@ from app.kafka.payment_topics import *
 from app.kafka.payment_producer import send_event
 from sqlalchemy.orm import Session
 from app.models.payment_model import Payment
+import requests
 
 
 def get_payment_by_id(payment_id: int, db: Session):
@@ -46,6 +47,19 @@ def create_new_payment(payment_data, db: Session):
         # =========================
         # EMIT SUCCESS EVENT
         # =========================
+
+        # =========================================
+        # FETCH ORDER DETAILS
+        # =========================================
+
+        response = requests.get(
+            f"http://order-service:8000/api/orders/{new_payment.order_id}"
+        )
+
+        order_data = response.json()
+
+        print("📦 Order data fetched:", order_data)
+
         if new_payment.status.lower() == "success":
 
             send_event(
@@ -60,6 +74,9 @@ def create_new_payment(payment_data, db: Session):
                         "payment_method": new_payment.payment_method,
                         "status": new_payment.status,
                         "timestamp": str(datetime.utcnow()),
+                        # FETCHED FROM ORDER SERVICE
+                        "product_id": order_data["product_id"],
+                        "quantity": order_data["quantity"],
                     },
                 },
             )
@@ -80,6 +97,9 @@ def create_new_payment(payment_data, db: Session):
                         "payment_method": new_payment.payment_method,
                         "status": new_payment.status,
                         "timestamp": str(datetime.utcnow()),
+                        # FETCHED FROM ORDER SERVICE
+                        "product_id": order_data["product_id"],
+                        "quantity": order_data["quantity"],
                     },
                 },
             )

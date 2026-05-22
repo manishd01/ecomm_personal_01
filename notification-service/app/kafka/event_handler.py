@@ -212,6 +212,7 @@ def handle_event(event):
             )
 
     finally:
+        # consumer.commit()
         db.close()
 
 

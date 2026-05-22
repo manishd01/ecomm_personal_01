@@ -26,7 +26,6 @@ def start_consumer():
     try:
 
         consumer = KafkaConsumer(
-            INVENTORY_EVENTS_TOPIC,
             ORDER_EVENTS_TOPIC,
             bootstrap_servers="kafka:9092",
             group_id="inventory-group",
@@ -123,8 +122,8 @@ def start_consumer():
 
                     print("❌ INVENTORY_FAILED emitted")
 
+                    consumer.commit()
                 finally:
-
                     db.close()
 
     thread = threading.Thread(target=consume)
