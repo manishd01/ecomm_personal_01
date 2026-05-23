@@ -71,7 +71,7 @@ def create_new_order(order_data):
                 quantity=order_data.quantity,
                 price=product["price"],
                 total_price=total_price,
-                status="created",
+                status="pending",
             )
 
             db.add(new_order)

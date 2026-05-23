@@ -76,7 +76,10 @@ def start_consumer():
                     # =========================
                     handle_event(event)
 
+                    consumer.commit()
+
                     print("✅ Event processed successfully")
+                    print("✅ Offset committed")
 
                 except Exception as e:
 
@@ -109,7 +112,7 @@ def start_consumer():
                         send_event("shipment-events-dlq", event)
 
                     # ✅ ONLY AFTER SUCCESS
-                    # consumer.commit()
+                    consumer.commit()
 
         except Exception as e:
 

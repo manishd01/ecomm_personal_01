@@ -79,6 +79,7 @@ def generate_tracking_number():
 
 
 def consume():
+    global consumer
 
     create_kafka_consumer()
 
@@ -189,7 +190,23 @@ def consume():
                     print(f"❌ Shipment creation failed: {str(e)}")
 
                     try:
+                        # simulation only as of now:
 
+                        PAYMENT_FAILURE_REASONS = [
+                            "Insufficient funds",
+                            "Card expired",
+                            "Bank timeout",
+                            "UPI server unavailable",
+                            "Fraud detection triggered",
+                            "Daily transaction limit exceeded",
+                            "CVV mismatch",
+                            "Payment gateway timeout",
+                            "Invalid OTP",
+                            "Network issue",
+                        ]
+                        import random
+
+                        failure_reason = random.choice(PAYMENT_FAILURE_REASONS)
                         send_event(
                             SHIPMENT_EVENTS_TOPIC,
                             {
@@ -199,7 +216,7 @@ def consume():
                                     "customer_id": payment_data.get("customer_id"),
                                     "product_id": payment_data.get("product_id"),
                                     "quantity": payment_data.get("quantity"),
-                                    "reason": str(e),
+                                    "reason": failure_reason,
                                     "timestamp": str(datetime.utcnow()),
                                 },
                             },
@@ -227,7 +244,19 @@ def consume():
 
             print(f"🔥 CONSUMER LOOP CRASHED: {str(outer_error)}")
 
+            try:
+                if consumer:
+                    consumer.close()
+            except Exception as close_error:
+                print(f"⚠️ Error closing consumer: {close_error}")
+
+            consumer = None
+
+            print("🔁 Reconnecting Kafka consumer in 5 seconds...")
+
             time.sleep(5)
+
+            create_kafka_consumer()
 
 
 def start_consumer():

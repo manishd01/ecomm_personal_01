@@ -66,6 +66,7 @@ def start_consumer():
     # =========================
 
     def consume():
+        global consumer
 
         print("🚀 Payment consumer started...")
 
@@ -81,6 +82,8 @@ def start_consumer():
 
             if event["event"] == "INVENTORY_RESERVED":
                 print("Inventory reserved successfully")
+
+                consumer.commit()
 
                 # db = SessionLocal()
 

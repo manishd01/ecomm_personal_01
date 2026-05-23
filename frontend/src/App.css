@@ -829,3 +829,13 @@ select.input-field {
   color: red;
   font-weight: bold;
 }
+
+.error-box {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #ffe5e5;
+  color: #d10000;
+  font-size: 14px;
+  border: 1px solid #ffb3b3;
+}

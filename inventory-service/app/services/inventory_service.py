@@ -1,26 +1,30 @@
+import time
+
 from sqlalchemy.orm import Session
 from app.models.inventory_model import Inventory
 from fastapi import HTTPException
 
 
 def decrease_inventory_stock(item_id: int, quantity: int, db: Session):
-    item = (
-        db.query(Inventory)
-        .filter(Inventory.id == item_id)
-        .with_for_update()  # 🔐 prevents race condition
-        .first()
-    )
 
-    if not item:
-        raise HTTPException(status_code=404, detail="Product not found")
+    print("🔒 Trying to acquire DB lock...")
+
+    item = (
+        db.query(Inventory).filter(Inventory.id == item_id).with_for_update().first()
+    )  # for row level locking....
+
+    print("✅ Lock acquired")
+
+    # time.sleep(10)  # TEMPORARY for  TESTing only, after that, comment it:
 
     if item.quantity < quantity:
         raise HTTPException(status_code=400, detail="Not enough stock")
 
-    item.quantity -= quantity  # ✅ correct logic
+    item.quantity -= quantity
 
     db.commit()
-    db.refresh(item)
+
+    print("✅ Transaction committed")
 
     return item
 
