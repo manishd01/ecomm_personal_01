@@ -2,25 +2,11 @@ from kafka import KafkaProducer
 import json
 import time
 
-producer = None
-# A realistic ecommerce flow:
+from common_logging.logging_config import setup_logger
 
-# 1. Order Created
-#         |
-#         v
-# 2. Inventory Reserved
-#         |
-#         v
-# 3. Payment Processed
-#         |
-#         v
-# 4. Shipment Created
-#         |
-#         v
-# 5. Shipment Delivered
-#         |
-#         v
-# 6. Notification Sent
+logger = setup_logger("order-service")
+
+producer = None
 
 
 def get_producer():
@@ -29,6 +15,16 @@ def get_producer():
 
     # already connected
     if producer is not None:
+
+        logger.info(
+            "Kafka producer reused (already connected)",
+            extra={
+                "component": "kafka_producer",
+                "operation": "GET_PRODUCER",
+                "status": "SUCCESS",
+            },
+        )
+
         return producer
 
     # retry connection
@@ -36,7 +32,16 @@ def get_producer():
 
         try:
 
-            print(f"⏳ Connecting to Kafka... attempt {i+1}")
+            logger.info(
+                "Attempting Kafka connection",
+                extra={
+                    "component": "kafka_producer",
+                    "operation": "CONNECT",
+                    "attempt": i + 1,
+                    "bootstrap_servers": "kafka:9092",
+                    "status": "STARTED",
+                },
+            )
 
             producer = KafkaProducer(
                 bootstrap_servers="kafka:9092",
@@ -44,15 +49,39 @@ def get_producer():
                 retries=5,
             )
 
-            print("✅ Kafka producer connected")
+            logger.info(
+                "Kafka producer connected successfully",
+                extra={
+                    "component": "kafka_producer",
+                    "operation": "CONNECT",
+                    "status": "SUCCESS",
+                },
+            )
 
             return producer
 
         except Exception as e:
 
-            print(f"❌ Kafka not ready: {e}")
+            logger.warning(
+                "Kafka connection attempt failed",
+                extra={
+                    "component": "kafka_producer",
+                    "operation": "CONNECT",
+                    "attempt": i + 1,
+                    "status": "FAILED",
+                },
+            )
 
             time.sleep(3)
+
+    logger.error(
+        "Kafka producer failed after max retries",
+        extra={
+            "component": "kafka_producer",
+            "operation": "CONNECT",
+            "status": "FAILED",
+        },
+    )
 
     return None
 
@@ -65,19 +94,42 @@ def send_event(topic: str, data: dict):
 
         if producer is None:
 
-            print("❌ Producer unavailable")
+            logger.error(
+                "Kafka producer unavailable, event not sent",
+                extra={
+                    "component": "kafka_producer",
+                    "operation": "SEND_EVENT",
+                    "topic": topic,
+                    "status": "FAILED",
+                },
+            )
 
             return
 
         producer.send(topic, value=data)
-
         producer.flush()
 
-        print(f"✅ Event sent to Kafka topic={topic}")
+        logger.info(
+            "Kafka event published successfully",
+            extra={
+                "component": "kafka_producer",
+                "operation": "SEND_EVENT",
+                "topic": topic,
+                "status": "SUCCESS",
+            },
+        )
 
     except Exception as e:
 
-        print("⚠️ Kafka producer error:", str(e))
+        logger.exception(
+            "Kafka producer error while sending event",
+            extra={
+                "component": "kafka_producer",
+                "operation": "SEND_EVENT",
+                "topic": topic,
+                "status": "FAILED",
+            },
+        )
 
 
 # from kafka import KafkaProducer

@@ -3,6 +3,10 @@ import json
 import threading
 import time
 
+from common_logging.logging_config import setup_logger
+
+logger = setup_logger("order-service")
+
 from app.database import SessionLocal
 
 from app.services.order_service import (
@@ -24,8 +28,6 @@ consumer_shipment = None
 # START CONSUMER
 # ====================================
 
-# //multiple consumers,-> forbetter scaling->  can do i one cosumser also
-
 
 def start_consumer():
 
@@ -41,7 +43,20 @@ def start_consumer():
 
         try:
 
-            print(f"⏳ Connecting order consumer... attempt {i+1}")
+            logger.info(
+                "Connecting order consumers to Kafka",
+                extra={
+                    "component": "kafka_consumer",
+                    "operation": "CONNECT",
+                    "attempt": i + 1,
+                    "topics": [
+                        INVENTORY_EVENTS_TOPIC,
+                        PAYMENT_EVENTS_TOPIC,
+                        SHIPMENT_EVENTS_TOPIC,
+                    ],
+                    "status": "STARTED",
+                },
+            )
 
             consumer_inventory = KafkaConsumer(
                 INVENTORY_EVENTS_TOPIC,
@@ -67,13 +82,28 @@ def start_consumer():
                 value_deserializer=lambda m: json.loads(m.decode("utf-8")),
             )
 
-            print("✅ Order consumer connected")
+            logger.info(
+                "Order Kafka consumers connected successfully",
+                extra={
+                    "component": "kafka_consumer",
+                    "operation": "CONNECT",
+                    "status": "SUCCESS",
+                },
+            )
 
             break
 
         except Exception as e:
 
-            print("❌ Kafka connection failed:", str(e))
+            logger.warning(
+                "Kafka consumer connection attempt failed",
+                extra={
+                    "component": "kafka_consumer",
+                    "operation": "CONNECT",
+                    "attempt": i + 1,
+                    "status": "FAILED",
+                },
+            )
 
             time.sleep(3)
 
@@ -83,13 +113,27 @@ def start_consumer():
 
     def consume_inventory():
 
-        print("🚀 Inventory event consumer started")
+        logger.info(
+            "Inventory consumer thread started",
+            extra={
+                "component": "inventory_consumer",
+                "topic": INVENTORY_EVENTS_TOPIC,
+                "status": "STARTED",
+            },
+        )
 
         for message in consumer_inventory:
 
             event = message.value
 
-            print(f"📩 Inventory event: {event}")
+            logger.info(
+                "Inventory event received",
+                extra={
+                    "component": "inventory_consumer",
+                    "event": event.get("event"),
+                    "status": "RECEIVED",
+                },
+            )
 
             try:
 
@@ -103,13 +147,26 @@ def start_consumer():
 
                     update_order_status_service(data["order_id"], "failed")
 
-                    print("❌ Order marked FAILED from inventory failure")
+                    logger.info(
+                        "Order marked FAILED due to inventory failure",
+                        extra={
+                            "order_id": data["order_id"],
+                            "component": "inventory_consumer",
+                            "status": "SUCCESS",
+                        },
+                    )
 
                 consumer_inventory.commit()
 
             except Exception as e:
 
-                print("❌ Inventory consumer error:", str(e))
+                logger.exception(
+                    "Inventory consumer processing error",
+                    extra={
+                        "component": "inventory_consumer",
+                        "status": "FAILED",
+                    },
+                )
 
     # ====================================
     # CONSUME PAYMENT EVENTS
@@ -117,13 +174,27 @@ def start_consumer():
 
     def consume_payment():
 
-        print("🚀 Payment event consumer started")
+        logger.info(
+            "Payment consumer thread started",
+            extra={
+                "component": "payment_consumer",
+                "topic": PAYMENT_EVENTS_TOPIC,
+                "status": "STARTED",
+            },
+        )
 
         for message in consumer_payment:
 
             event = message.value
 
-            print(f"📩 Payment event: {event}")
+            logger.info(
+                "Payment event received",
+                extra={
+                    "component": "payment_consumer",
+                    "event": event.get("event"),
+                    "status": "RECEIVED",
+                },
+            )
 
             try:
 
@@ -132,19 +203,31 @@ def start_consumer():
                 # ====================================
 
                 if event["event"] == "PAYMENT_FAILED":
-                    print("inside failing kafka,-> payment failed.")
 
                     data = event["data"]
 
                     update_order_status_service(data["order_id"], "failed")
 
-                    print("❌ Order marked FAILED from payment failure")
+                    logger.info(
+                        "Order marked FAILED due to payment failure",
+                        extra={
+                            "order_id": data["order_id"],
+                            "component": "payment_consumer",
+                            "status": "SUCCESS",
+                        },
+                    )
 
                 consumer_payment.commit()
 
             except Exception as e:
 
-                print("❌ Payment consumer error:", str(e))
+                logger.exception(
+                    "Payment consumer processing error",
+                    extra={
+                        "component": "payment_consumer",
+                        "status": "FAILED",
+                    },
+                )
 
     # ====================================
     # CONSUME SHIPMENT EVENTS
@@ -152,13 +235,27 @@ def start_consumer():
 
     def consume_shipment():
 
-        print("🚀 Shipment event consumer started")
+        logger.info(
+            "Shipment consumer thread started",
+            extra={
+                "component": "shipment_consumer",
+                "topic": SHIPMENT_EVENTS_TOPIC,
+                "status": "STARTED",
+            },
+        )
 
         for message in consumer_shipment:
 
             event = message.value
 
-            print(f"📩 Shipment event: {event}")
+            logger.info(
+                "Shipment event received",
+                extra={
+                    "component": "shipment_consumer",
+                    "event": event.get("event"),
+                    "status": "RECEIVED",
+                },
+            )
 
             try:
 
@@ -172,7 +269,14 @@ def start_consumer():
 
                     update_order_status_service(data["order_id"], "created")
 
-                    print("✅ Order marked CREATED")
+                    logger.info(
+                        "Order marked CREATED from shipment event",
+                        extra={
+                            "order_id": data["order_id"],
+                            "component": "shipment_consumer",
+                            "status": "SUCCESS",
+                        },
+                    )
 
                 # ====================================
                 # SHIPMENT FAILED
@@ -184,13 +288,26 @@ def start_consumer():
 
                     update_order_status_service(data["order_id"], "failed")
 
-                    print("❌ Order marked FAILED from shipment failure")
+                    logger.info(
+                        "Order marked FAILED from shipment failure",
+                        extra={
+                            "order_id": data["order_id"],
+                            "component": "shipment_consumer",
+                            "status": "SUCCESS",
+                        },
+                    )
 
                 consumer_shipment.commit()
 
             except Exception as e:
 
-                print("❌ Shipment consumer error:", str(e))
+                logger.exception(
+                    "Shipment consumer processing error",
+                    extra={
+                        "component": "shipment_consumer",
+                        "status": "FAILED",
+                    },
+                )
 
     # ====================================
     # START THREADS
@@ -215,4 +332,10 @@ def start_consumer():
     payment_thread.start()
     shipment_thread.start()
 
-    print("🔥 Order consumers running")
+    logger.info(
+        "Order consumers running successfully",
+        extra={
+            "component": "kafka_consumer",
+            "status": "RUNNING",
+        },
+    )
