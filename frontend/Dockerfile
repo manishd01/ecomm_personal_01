@@ -8,5 +8,11 @@ COPY package-lock.json /app/package-lock.json
 RUN npm install
 
 COPY . /app
+# Create cache directory and give proper ownership
+RUN mkdir -p /app/node_modules/.cache \
+    && chown -R node:node /app
+
+# Run the application as the node user
+USER node
 
 CMD ["npm", "start"]
