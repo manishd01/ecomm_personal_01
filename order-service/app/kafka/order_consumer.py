@@ -95,8 +95,8 @@ def start_consumer():
 
         except Exception as e:
 
-            logger.warning(
-                "Kafka consumer connection attempt failed",
+            logger.exception(
+                f"Kafka consumer connection attempt failed: {e}",
                 extra={
                     "component": "kafka_consumer",
                     "operation": "CONNECT",
@@ -107,6 +107,23 @@ def start_consumer():
 
             time.sleep(3)
 
+    # =====================================================
+    # ADD THIS HERE
+    # =====================================================
+
+    if (
+        consumer_inventory is None
+        or consumer_payment is None
+        or consumer_shipment is None
+    ):
+        logger.error(
+            "Failed to connect to Kafka after 10 attempts. Consumers not started.",
+            extra={
+                "component": "kafka_consumer",
+                "status": "FAILED",
+            },
+        )
+        return
     # ====================================
     # CONSUME INVENTORY EVENTS
     # ====================================
@@ -121,7 +138,8 @@ def start_consumer():
                 "status": "STARTED",
             },
         )
-
+        if consumer_inventory is None:
+            return
         for message in consumer_inventory:
 
             event = message.value
@@ -183,6 +201,9 @@ def start_consumer():
             },
         )
 
+        if consumer_payment is None:
+            return
+
         for message in consumer_payment:
 
             event = message.value
@@ -243,7 +264,8 @@ def start_consumer():
                 "status": "STARTED",
             },
         )
-
+        if consumer_shipment is None:
+            return
         for message in consumer_shipment:
 
             event = message.value
