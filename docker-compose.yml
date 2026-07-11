@@ -24,6 +24,7 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_HEAP_OPTS: "-Xms256M -Xmx256M" #to take leess space:
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -31,6 +32,8 @@ services:
       - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
+    command:
+      - --innodb-buffer-pool-size=128M #to take leess space:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
