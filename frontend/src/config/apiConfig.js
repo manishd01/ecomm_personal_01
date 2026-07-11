@@ -4,21 +4,15 @@
 // API Configuration for all microservices
 // API Configuration for all microservices
 
-const isProduction = process.env.REACT_APP_ENV === "production";
 const API_HOST = process.env.REACT_APP_API_HOST;
 
 const SERVICES = {
-  order: isProduction ? `${API_HOST}:8000` : "http://localhost:8000",
-
-  inventory: isProduction ? `${API_HOST}:8001` : "http://localhost:8001",
-
-  customer: isProduction ? `${API_HOST}:8002` : "http://localhost:8002",
-
-  payment: isProduction ? `${API_HOST}:8003` : "http://localhost:8003",
-
-  notification: isProduction ? `${API_HOST}:8004` : "http://localhost:8004",
-
-  shipping: isProduction ? `${API_HOST}:8005` : "http://localhost:8005",
+  order: `${API_HOST}:8000`,
+  inventory: `${API_HOST}:8001`,
+  customer: `${API_HOST}:8002`,
+  payment: `${API_HOST}:8003`,
+  notification: `${API_HOST}:8004`,
+  shipping: `${API_HOST}:8005`,
 };
 
 export const API_BASE_URLS = {

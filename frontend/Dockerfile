@@ -9,6 +9,12 @@ RUN npm install
 
 COPY . .
 
+ARG REACT_APP_API_HOST
+ARG REACT_APP_ENV
+
+ENV REACT_APP_API_HOST=$REACT_APP_API_HOST
+ENV REACT_APP_ENV=$REACT_APP_ENV
+
 RUN npm run build
 
 # ---------- Production Stage ----------
