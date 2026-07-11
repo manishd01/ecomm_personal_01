@@ -165,13 +165,18 @@ services:
       context: ./frontend
     container_name: frontend
     ports:
-      - "3000:3000"
+      # - "3000:3000"
+      - "80:80"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
+      # - CHOKIDAR_USEPOLLING=true
+      # - WATCHPACK_POLLING=true
+      # # - REACT_APP_ENV=development
+      # - REACT_APP_ENV=production
+      # - REACT_APP_API_HOST=http://3.226.15.198
+
     stdin_open: true
     tty: true
     depends_on:
