@@ -180,14 +180,14 @@ services:
       # - REACT_APP_ENV=production
       # - REACT_APP_API_HOST=http://3.226.15.198
 
-    stdin_open: true
-    tty: true
-    depends_on:
-      - order-service
-      - inventory-service
-      - payment-service
-      - customer-service
-      - notification-service
+      stdin_open: true
+      tty: true
+      depends_on:
+        - order-service
+        - inventory-service
+        - payment-service
+        - customer-service
+        - notification-service
 
   loki:
     image: grafana/loki:2.9.8
