@@ -160,34 +160,34 @@ services:
       - ./shipping-service:/app
       - ./common_logging:/app/common_logging
 
-    frontend:
-      build:
-        context: ./frontend
-        args:
-          REACT_APP_API_HOST: http://32.198.33.86
-          REACT_APP_ENV: production
-      container_name: frontend
-      ports:
-        # - "3000:3000"
-        - "80:80"
-      volumes:
-        - ./frontend:/app
-        - /app/node_modules
-      # environment:
-      # - CHOKIDAR_USEPOLLING=true
-      # - WATCHPACK_POLLING=true
-      # # - REACT_APP_ENV=development
-      # - REACT_APP_ENV=production
-      # - REACT_APP_API_HOST=http://3.226.15.198
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        REACT_APP_API_HOST: http://3.226.15.198
+        REACT_APP_ENV: production
+    container_name: frontend
+    ports:
+      # - "3000:3000"
+      - "80:80"
+    # volumes:
+    #   - ./frontend:/app
+    #   - /app/node_modules
+    # environment:
+    # - CHOKIDAR_USEPOLLING=true
+    # - WATCHPACK_POLLING=true
+    # # - REACT_APP_ENV=development
+    # - REACT_APP_ENV=production
+    # - REACT_APP_API_HOST=http://3.226.15.198
 
-      stdin_open: true
-      tty: true
-      depends_on:
-        - order-service
-        - inventory-service
-        - payment-service
-        - customer-service
-        - notification-service
+    stdin_open: true
+    tty: true
+    depends_on:
+      - order-service
+      - inventory-service
+      - payment-service
+      - customer-service
+      - notification-service
 
   loki:
     image: grafana/loki:2.9.8
