@@ -18,22 +18,30 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-def upgrade() -> None:
-    op.add_column(
-        "shipment_tracking",
-        sa.Column(
-            "event_type", sa.String(length=20), nullable=False, server_default=""
-        ),
-    )
+def upgrade():
+    pass
 
 
-def upgrade() -> None:
-    op.add_column(
-        "shipment_tracking",
-        sa.Column(
-            "event_type", sa.String(length=20), nullable=False, server_default=""
-        ),
-    )
+def downgrade():
+    pass
+
+
+# def upgrade() -> None:
+#     op.add_column(
+#         "shipment_tracking",
+#         sa.Column(
+#             "event_type", sa.String(length=20), nullable=False, server_default=""
+#         ),
+#     )
+
+
+# def upgrade() -> None:
+#     op.add_column(
+#         "shipment_tracking",
+#         sa.Column(
+#             "event_type", sa.String(length=20), nullable=False, server_default=""
+#         ),
+#     )
 
 
 # def upgrade() -> None:
