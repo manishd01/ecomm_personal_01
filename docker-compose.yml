@@ -236,6 +236,9 @@ services:
 volumes:
   mysql_data:
   grafana_data:
+  kafka_data:
+  zookeeper_data:
+  zookeeper_log:
 
 # services:
 
