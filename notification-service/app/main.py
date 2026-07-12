@@ -19,11 +19,6 @@ app.add_middleware(
 app.include_router(notification_router, prefix="/api")
 
 
-@app.get("/health")
-def health():
-    return {"status": "Notification Service is running"}
-
-
 # @app.on_event("startup")
 # def startup():
 #     #Base.metadata.create_all(bind=engine)
@@ -33,3 +28,8 @@ def health():
 def start_kafka():
     print("🔥 FASTAPI STARTUP RUNNING")
     start_consumer()
+
+
+@app.get("/health")
+def health():
+    return {"status": "Notification Service is running"}
