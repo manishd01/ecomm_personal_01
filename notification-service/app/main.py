@@ -8,21 +8,13 @@ from app.kafka.notification_consumer import start_consumer
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "http://localhost:8001",
-    "http://localhost:8002",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # Include notification routes
 app.include_router(notification_router, prefix="/api")
 
