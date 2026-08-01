@@ -24,6 +24,7 @@ def upgrade():
 
 def downgrade():
     pass
+    # new commente
 
 
 # def upgrade() -> None:
