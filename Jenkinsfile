@@ -22,35 +22,30 @@ pipeline {
 
         stage('Build Docker Images') {
             steps {
-                sh 'docker compose build'
+                bat 'docker compose build'
             }
         }
 
         stage('Docker Hub Login') {
             steps {
-                sh '''
-                echo $DOCKER_HUB_PSW | docker login \
-                -u $DOCKER_HUB_USR \
-                --password-stdin
+                bat '''
+                echo %DOCKER_HUB_PSW% | docker login -u %DOCKER_HUB_USR% --password-stdin
                 '''
             }
         }
 
         stage('Push Docker Images') {
             steps {
-                sh 'docker compose push'
+                bat 'docker compose push'
             }
         }
 
         stage('Deploy to EC2') {
             steps {
                 sshagent(credentials: ['ec2-ssh-key']) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                        cd ~/ecommerce-microservices &&
-                        docker compose pull &&
-                        docker compose up -d
-                    '
+                    bat """
+                    ssh -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% ^
+                    "cd ~/ecommerce-microservices && docker compose pull && docker compose up -d"
                     """
                 }
             }
@@ -69,4 +64,4 @@ pipeline {
         }
 
     }
-}
+}   
