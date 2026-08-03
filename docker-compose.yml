@@ -54,6 +54,7 @@ services:
       context: .
       dockerfile: order-service/Dockerfile
     container_name: order-service
+    image: manishhd01/order-service:latest
     ports:
       - "8000:8000"
     environment:
@@ -72,6 +73,7 @@ services:
     build:
       context: .
       dockerfile: inventory-service/Dockerfile
+    image: manishhd01/inventory-service:latest
     container_name: inventory-service
     ports:
       - "8001:8000"
@@ -91,6 +93,7 @@ services:
     build:
       context: .
       dockerfile: payment-service/Dockerfile
+    image: manishhd01/payment-service:latest
     container_name: payment-service
     ports:
       - "8003:8000"
@@ -111,6 +114,7 @@ services:
     build:
       context: .
       dockerfile: customer-service/Dockerfile
+    image: manishhd01/customer-service:latest
     container_name: customer-service
     ports:
       - "8002:8000"
@@ -130,6 +134,7 @@ services:
     build:
       context: .
       dockerfile: notification-service/Dockerfile
+    image: manishhd01/notification-service:latest
     container_name: notification-service
     ports:
       - "8004:8000"
@@ -153,6 +158,7 @@ services:
       context: .
       dockerfile: shipping-service/Dockerfile
     container_name: shipping-service
+    image: manishhd01/shipping-service:latest
     ports:
       - "8005:8000"
     environment:
@@ -176,6 +182,7 @@ services:
         REACT_APP_API_HOST: http://3.226.15.198
         REACT_APP_ENV: production
     container_name: frontend
+    image: manishhd01/frontend:latest
     ports:
       # - "3000:3000"
       - "80:80"
