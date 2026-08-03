@@ -36,21 +36,42 @@ pipeline {
 
         stage('Push Docker Images') {
             steps {
-                bat 'docker compose push'
+                bat 'docker push manishhd01/order-service:latest'
+                bat 'docker push manishhd01/inventory-service:latest'
+                bat 'docker push manishhd01/customer-service:latest'
+                bat 'docker push manishhd01/payment-service:latest'
+                bat 'docker push manishhd01/notification-service:latest'
+                bat 'docker push manishhd01/shipping-service:latest'
+                bat 'docker push manishhd01/frontend:latest'
             }
         }
+
+        // stage('Deploy to EC2') {
+        //     steps {
+        //         sshagent(credentials: ['ec2-ssh-key']) {
+        //             bat """
+        //             ssh -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% ^
+        //             "cd ~/ecommerce-microservices && docker compose pull && docker compose up -d"
+        //             """
+        //         }
+        //     }
+        // }  //// not using ssh as of now;
+
 
         stage('Deploy to EC2') {
             steps {
-                sshagent(credentials: ['ec2-ssh-key']) {
+                withCredentials([file(credentialsId: 'ec2-pem-file_Secret_file', variable: 'PEM_FILE')]) {
+
                     bat """
-                    ssh -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% ^
+                    ssh -i "%PEM_FILE%" ^
+                    -o StrictHostKeyChecking=no ^
+                    ubuntu@3.226.15.198 ^
                     "cd ~/ecommerce-microservices && docker compose pull && docker compose up -d"
                     """
+
                 }
             }
         }
-
     }
 
     post {
