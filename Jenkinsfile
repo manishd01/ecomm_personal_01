@@ -6,6 +6,8 @@ pipeline {
 
         EC2_HOST = "3.226.15.198"
         EC2_USER = "ubuntu"
+        EC2_KEY = "M:\\projects\\Resum_project\\ecomm\\ecomm_Server_key.pem" /// for now hardcode, will change laterL
+
     }
 
     triggers {
@@ -58,18 +60,30 @@ pipeline {
         // }  //// not using ssh as of now;
 
 
+        // stage('Deploy to EC2') {
+        //     steps {
+        //         withCredentials([file(credentialsId: 'ec2-pem-file_Secret_file', variable: 'PEM_FILE')]) {
+
+        //             bat """
+        //             ssh -i "%PEM_FILE%" ^
+        //             -o StrictHostKeyChecking=no ^
+        //             ubuntu@3.226.15.198 ^
+        //             "cd ~/ecommerce-microservices && docker compose pull && docker compose up -d"
+        //             """
+
+        //         }
+        //     }
+        // }  //////not working, telling Load key "C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\ecomm-pipeline@tmp\\secretFiles\\5a542122-34db-4bff-8b53-848edf2e7034\\file9551972910908143207.tmp": bad permissions
+
+
         stage('Deploy to EC2') {
             steps {
-                withCredentials([file(credentialsId: 'ec2-pem-file_Secret_file', variable: 'PEM_FILE')]) {
-
-                    bat """
-                    ssh -i "%PEM_FILE%" ^
-                    -o StrictHostKeyChecking=no ^
-                    ubuntu@3.226.15.198 ^
-                    "cd ~/ecommerce-microservices && docker compose pull && docker compose up -d"
-                    """
-
-                }
+                bat """
+                ssh -i "%EC2_KEY%" ^
+                -o StrictHostKeyChecking=no ^
+                %EC2_USER%@%EC2_HOST% ^
+                "cd ~/ecommerce-microservices && docker compose pull && docker compose up -d"
+                """
             }
         }
     }
