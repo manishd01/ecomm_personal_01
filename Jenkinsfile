@@ -82,6 +82,10 @@ pipeline {
                     bat """
                     echo Using key: %EC2_KEY%
 
+                    icacls "%EC2_KEY%" /inheritance:r
+                    icacls "%EC2_KEY%" /remove:g "BUILTIN\\Users"
+                    icacls "%EC2_KEY%" /grant:r "%USERNAME%:R"
+
                     ssh -i "%EC2_KEY%" ^
                     -o StrictHostKeyChecking=no ^
                     %EC2_USER%@%EC2_HOST% ^
