@@ -81,7 +81,17 @@ pipeline {
                 withCredentials([file(credentialsId: 'ec2-pem-file_Secret_file', variable: 'EC2_KEY')]) {
                     bat """
                     echo Using key: %EC2_KEY%
+                    echo ===== WHOAMI =====
+                    whoami
 
+                    echo ===== USERNAME =====
+                    echo %USERNAME%
+
+                    echo ===== FILE PERMISSIONS BEFORE =====
+                    icacls "%EC2_KEY%"
+
+
+                    
                     icacls "%EC2_KEY%" /inheritance:r
                     icacls "%EC2_KEY%" /remove:g "BUILTIN\\Users"
                     icacls "%EC2_KEY%" /grant:r "%USERNAME%:R"
