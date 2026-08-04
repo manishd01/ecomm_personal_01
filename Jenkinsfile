@@ -6,7 +6,7 @@ pipeline {
 
         EC2_HOST = "3.226.15.198"
         EC2_USER = "ubuntu"
-        EC2_KEY = "M:\\projects\\Resum_project\\ecomm\\ecomm_Server_key.pem" /// for now hardcode, will change laterL
+        // EC2_KEY = "M:\\projects\\Resum_project\\ecomm\\ecomm_Server_key.pem" /// for now hardcode, will change laterL
 
     }
 
@@ -78,12 +78,16 @@ pipeline {
 
         stage('Deploy to EC2') {
             steps {
-                bat """
-                ssh -i "%EC2_KEY%" ^
-                -o StrictHostKeyChecking=no ^
-                %EC2_USER%@%EC2_HOST% ^
-                "cd ~/ecommerce-microservices && docker compose pull && docker compose up -d"
-                """
+                withCredentials([file(credentialsId: 'ec2-pem-file_Secret_file', variable: 'EC2_KEY')]) {
+                    bat """
+                    echo Using key: %EC2_KEY%
+
+                    ssh -i "%EC2_KEY%" ^
+                    -o StrictHostKeyChecking=no ^
+                    %EC2_USER%@%EC2_HOST% ^
+                    "cd ~/ecommerce-microservices && docker compose pull && docker compose up -d"
+                    """
+                }
             }
         }
     }
