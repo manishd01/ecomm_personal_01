@@ -91,10 +91,10 @@ pipeline {
                     icacls "%EC2_KEY%"
 
 
-                    
+
                     icacls "%EC2_KEY%" /inheritance:r
                     icacls "%EC2_KEY%" /remove:g "BUILTIN\\Users"
-                    icacls "%EC2_KEY%" /grant:r "%USERNAME%:R"
+                    icacls "%EC2_KEY%" /grant:r "SYSTEM:(R)"
 
                     ssh -i "%EC2_KEY%" ^
                     -o StrictHostKeyChecking=no ^
