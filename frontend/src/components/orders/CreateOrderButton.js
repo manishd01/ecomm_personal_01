@@ -1,4 +1,5 @@
 import React from "react";
+import { useEffect } from "react";
 import CreateOrderModal from "../../functionalities/CreateOrderModal";
 import PaymentModal from "../../functionalities/PaymentModal";
 
@@ -6,7 +7,16 @@ function CreateOrderButton({ onOrderCreated, onRefreshData }) {
   const [showModal, setShowModal] = React.useState(false);
   const [selectedOrder, setSelectedOrder] = React.useState(null);
   const [showPaymentModal, setShowPaymentModal] = React.useState(false);
+  useEffect(() => {
+    console.log("selectedOrder changed:", selectedOrder);
 
+    if (selectedOrder) {
+      console.log("OPENING PAYMENT MODAL");
+
+      setShowPaymentModal(true);
+    }
+  }, [selectedOrder]);
+  console.log("showPaymentModal:", showPaymentModal);
   return (
     <>
       <section>
@@ -16,11 +26,17 @@ function CreateOrderButton({ onOrderCreated, onRefreshData }) {
           <CreateOrderModal
             onClose={() => setShowModal(false)}
             onSuccess={(newOrder) => {
-              console.log(newOrder, "order came");
+              console.log("NEW ORDER RECEIVED:", newOrder);
+
+              setSelectedOrder(newOrder);
+              console.log("selectedOrder:", selectedOrder);
               setShowModal(false);
-              setSelectedOrder(newOrder); // ✅ store order
-              setShowPaymentModal(true); // ✅ open payment modal
-              onRefreshData();
+
+              // setTimeout(() => {
+              //   setShowPaymentModal(true);
+              // }, 100);
+
+              // onRefreshData();
             }}
           />
         )}
@@ -30,7 +46,11 @@ function CreateOrderButton({ onOrderCreated, onRefreshData }) {
           <PaymentModal
             order={selectedOrder}
             onClose={() => setShowPaymentModal(false)}
-            onSuccess={onRefreshData}
+            onSuccess={() => {
+              onRefreshData();
+
+              setShowPaymentModal(false);
+            }}
           />
         )}
       </section>

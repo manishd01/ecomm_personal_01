@@ -1,7 +1,6 @@
 from kafka import KafkaProducer
 import json
 
-
 producer = None
 
 
@@ -11,7 +10,7 @@ def get_producer():
     if producer is None:
         producer = KafkaProducer(
             bootstrap_servers="kafka:9092",
-            value_serializer=lambda v: json.dumps(v).encode("utf-8")
+            value_serializer=lambda v: json.dumps(v).encode("utf-8"),
         )
 
     return producer
@@ -26,7 +25,7 @@ def send_event(topic: str, data: dict):
 
         producer.flush()
 
-        print(f"✅ Event sent to Kafka topic={topic}")
+        print(f"✅ Event sent to topic={topic}")
 
     except Exception as e:
         print("⚠️ Kafka producer error:", str(e))

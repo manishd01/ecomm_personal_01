@@ -4,6 +4,7 @@ import "./style_func.css";
 
 const CreateOrderModal = ({ onClose, onSuccess }) => {
   const [customers, setCustomers] = useState([]);
+  const [error, setError] = useState("");
   const [products, setProducts] = useState([]);
 
   const [form, setForm] = useState({
@@ -47,10 +48,10 @@ const CreateOrderModal = ({ onClose, onSuccess }) => {
   const handleQuantityChange = (qty) => {
     const product = products.find((p) => p.id == form.product_id);
 
-    if (product && qty > product.quantity) {
-      alert("Quantity exceeds available stock");
-      return;
-    }
+    // if (product && qty > product.quantity) {
+    //   alert("Quantity exceeds available stock");
+    //   return;
+    // }
 
     setForm((prev) => ({ ...prev, quantity: qty }));
   };
@@ -64,24 +65,83 @@ const CreateOrderModal = ({ onClose, onSuccess }) => {
   //         ...form,
   //         price: totalPrice,
   //       });
+  // const handleSubmit = async () => {
+  //   try {
+  //     const response = await orderAPI.create({
+  //       ...form,
+  //       price: form.price, // backend expects price
+  //     });
+
+  //     console.log("Order API response:", response); // DEBUG
+
+  //     if (response.success) {
+  //       console.log("Order created successfully:", response.data);
+  //       onSuccess(response.data); // ✅ PASS ORDER BACK
+  //     } else {
+  //       alert("Failed to create order");
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Error creating order");
+  //   }
+  // };
   const handleSubmit = async () => {
     try {
+      // clear old error
+      setError("");
+
+      // =========================
+      // FIND SELECTED PRODUCT
+      // =========================
+
+      const selectedProduct = products.find((p) => p.id == form.product_id);
+
+      if (!selectedProduct) {
+        setError("Please select a product");
+        return;
+      }
+
+      // =========================
+      // STOCK VALIDATION
+      // =========================
+
+      if (selectedProduct.quantity <= 0) {
+        setError("❌ Product is currently out of stock");
+        return;
+      }
+
+      // =========================
+      // QUANTITY VALIDATION
+      // =========================
+
+      if (form.quantity > selectedProduct.quantity) {
+        setError(`Only ${selectedProduct.quantity} item(s) available in stock`);
+        return;
+      }
+
+      // =========================
+      // CREATE ORDER
+      // =========================
+
       const response = await orderAPI.create({
         ...form,
-        price: form.price, // backend expects price
+        price: form.price,
       });
 
-      console.log("Order API response:", response); // DEBUG
+      console.log("Order API response:", response);
 
       if (response.success) {
         console.log("Order created successfully:", response.data);
-        onSuccess(response.data); // ✅ PASS ORDER BACK
+
+        // OPEN PAYMENT MODAL
+        onSuccess(response.data);
       } else {
-        alert("Failed to create order");
+        setError("Failed to create order");
       }
     } catch (err) {
       console.error(err);
-      alert("Error creating order");
+
+      setError("Something went wrong while creating order");
     }
   };
 
@@ -126,6 +186,7 @@ const CreateOrderModal = ({ onClose, onSuccess }) => {
         <p>Total Price: ₹{totalPrice}</p>
 
         <div style={{ marginTop: "10px" }}>
+          {error && <div className="error-box">{error}</div>}
           <button onClick={handleSubmit}>Submit</button>
           <button onClick={onClose} style={{ marginLeft: "10px" }}>
             Cancel

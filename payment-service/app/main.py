@@ -3,9 +3,9 @@ from app.routes.payment_routes import router as payment_router
 from app.database import Base, engine
 from app.models.payment_model import Payment
 from fastapi.middleware.cors import CORSMiddleware
+from app.kafka.payment_consumer import start_consumer
 
 app = FastAPI()
-
 
 
 app.add_middleware(
@@ -18,9 +18,17 @@ app.add_middleware(
 # Include payment routes
 app.include_router(payment_router, prefix="/api")
 
+
 @app.get("/health")
 def health():
     return {"status": "Payment Service is running"}
+
+
+@app.on_event("startup")
+def start_kafka():
+    print("🔥 FASTAPI STARTUP RUNNING")
+    start_consumer()
+
 
 # @app.on_event("startup")
 # def startup():
