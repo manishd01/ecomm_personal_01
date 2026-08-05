@@ -1,42 +1,40 @@
 [
   {
-    "product_id": 1,
-    "product_name": "Wireless Mouse",
-    "quantity": 50,
-    "price": 799,
-    "description": "Ergonomic wireless mouse with USB receiver"
-  },
-  {
-    "product_id": 2,
-    "product_name": "Mechanical Keyboard",
-    "quantity": 30,
-    "price": 2499,
-    "description": "RGB backlit mechanical keyboard with blue switches"
-  },
-  {
-    "product_id": 3,
-    "product_name": "USB-C Charger",
-    "quantity": 100,
-    "price": 999,
-    "description": "Fast charging 65W USB-C adapter"
-  },
-  {
-    "product_id": 4,
-    "product_name": "Gaming Headset",
+    "model_number": "LAP-HP-001",
+    "product_name": "HP Pavilion 15 Laptop",
     "quantity": 25,
-    "price": 1999,
-    "description": "Surround sound gaming headset with mic"
+    "price": 64999,
+    "description": "15.6-inch FHD laptop with Intel Core i5, 16GB RAM and 512GB SSD."
   },
   {
-    "product_id": 5,
-    "product_name": "Laptop Stand",
+    "model_number": "PHN-SAM-002",
+    "product_name": "Samsung Galaxy S24",
     "quantity": 40,
-    "price": 1299,
-    "description": "Adjustable aluminum laptop stand for better airflow"
+    "price": 79999,
+    "description": "Flagship Android smartphone with 256GB storage and AMOLED display."
+  },
+  {
+    "model_number": "HDP-WD-003",
+    "product_name": "WD My Passport 2TB",
+    "quantity": 60,
+    "price": 6499,
+    "description": "Portable 2TB external hard drive with USB 3.2 connectivity."
+  },
+  {
+    "model_number": "HDPH-SONY-004",
+    "product_name": "Sony WH-1000XM5",
+    "quantity": 18,
+    "price": 29990,
+    "description": "Wireless noise-cancelling over-ear Bluetooth headphones."
+  },
+  {
+    "model_number": "MON-LG-005",
+    "product_name": "LG UltraGear 27-inch Monitor",
+    "quantity": 12,
+    "price": 25999,
+    "description": "27-inch QHD IPS gaming monitor with 165Hz refresh rate."
   }
 ]
-
-
 
 
 
