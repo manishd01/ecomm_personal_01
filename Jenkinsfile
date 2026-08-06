@@ -100,6 +100,7 @@ pipeline {
                     -o StrictHostKeyChecking=no ^
                     %EC2_USER%@%EC2_HOST% ^
                     "cd /home/ubuntu/ecomm_personal_01 && git pull && docker compose pull && docker compose up -d"
+                    """
                 }
             }
         }
