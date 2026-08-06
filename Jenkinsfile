@@ -99,8 +99,7 @@ pipeline {
                     ssh -i "%EC2_KEY%" ^
                     -o StrictHostKeyChecking=no ^
                     %EC2_USER%@%EC2_HOST% ^
-                    "cd /home/ubuntu/ecomm_personal_01 && docker compose pull && docker compose up -d"
-                    """
+                    "cd /home/ubuntu/ecomm_personal_01 && git pull && docker compose pull && docker compose up -d"
                 }
             }
         }
