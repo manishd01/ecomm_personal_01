@@ -3,6 +3,7 @@
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.2.1
+    restart: unless-stopped
     container_name: zookeeper
     ports:
       - "2181:2181"
@@ -15,6 +16,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.2.1
+    restart: unless-stopped
     container_name: kafka
     ports:
       - "9092:9092"
@@ -33,6 +35,7 @@ services:
 
   mysql:
     image: mysql:8.0
+    restart: unless-stopped
     container_name: mysql
     ports:
       - "3307:3306"
@@ -55,6 +58,7 @@ services:
       dockerfile: order-service/Dockerfile
     container_name: order-service
     image: manishhd01/order-service:latest
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
@@ -74,6 +78,7 @@ services:
       context: .
       dockerfile: inventory-service/Dockerfile
     image: manishhd01/inventory-service:latest
+    restart: unless-stopped
     container_name: inventory-service
     ports:
       - "8001:8000"
@@ -94,6 +99,7 @@ services:
       context: .
       dockerfile: payment-service/Dockerfile
     image: manishhd01/payment-service:latest
+    restart: unless-stopped
     container_name: payment-service
     ports:
       - "8003:8000"
@@ -115,6 +121,7 @@ services:
       context: .
       dockerfile: customer-service/Dockerfile
     image: manishhd01/customer-service:latest
+    restart: unless-stopped
     container_name: customer-service
     ports:
       - "8002:8000"
@@ -136,6 +143,7 @@ services:
       dockerfile: notification-service/Dockerfile
     image: manishhd01/notification-service:latest
     container_name: notification-service
+    restart: unless-stopped
     ports:
       - "8004:8000"
 
@@ -159,6 +167,7 @@ services:
       dockerfile: shipping-service/Dockerfile
     container_name: shipping-service
     image: manishhd01/shipping-service:latest
+    restart: unless-stopped
     ports:
       - "8005:8000"
     environment:
@@ -183,9 +192,19 @@ services:
         REACT_APP_ENV: production
     container_name: frontend
     image: manishhd01/frontend:latest
+    restart: unless-stopped
     ports:
       # - "3000:3000"
       - "80:80"
+    stdin_open: true
+    tty: true
+    depends_on:
+      - order-service
+      - inventory-service
+      - payment-service
+      - customer-service
+      - notification-service
+
     # volumes:
     #   - ./frontend:/app
     #   - /app/node_modules
@@ -196,18 +215,10 @@ services:
     # - REACT_APP_ENV=production
     # - REACT_APP_API_HOST=http://3.226.15.198
 
-    stdin_open: true
-    tty: true
-    depends_on:
-      - order-service
-      - inventory-service
-      - payment-service
-      - customer-service
-      - notification-service
-
   loki:
     image: grafana/loki:2.9.8
     container_name: loki
+    restart: unless-stopped
     ports:
       - "3100:3100"
 
@@ -216,7 +227,7 @@ services:
   promtail:
     image: grafana/promtail:2.9.8
     container_name: promtail
-
+    restart: unless-stopped
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
@@ -230,7 +241,7 @@ services:
   grafana:
     image: grafana/grafana:10.4.2
     container_name: grafana
-
+    restart: unless-stopped
     ports:
       - "3001:3000"
 
