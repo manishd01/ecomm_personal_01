@@ -22,7 +22,30 @@ pipeline {
                 checkout scm
             }
         }
+        
+        stage('Verify Entrypoint Line Endings') {
+            steps {
+                bat '''
+                echo ===== ORDER =====
+                git ls-files --eol order-service/entrypoint.sh
 
+                echo ===== INVENTORY =====
+                git ls-files --eol inventory-service/entrypoint.sh
+
+                echo ===== CUSTOMER =====
+                git ls-files --eol customer-service/entrypoint.sh
+
+                echo ===== PAYMENT =====
+                git ls-files --eol payment-service/entrypoint.sh
+
+                echo ===== NOTIFICATION =====
+                git ls-files --eol notification-service/entrypoint.sh
+
+                echo ===== SHIPPING =====
+                git ls-files --eol shipping-service/entrypoint.sh
+                '''
+            }
+        }
         stage('Build Docker Images') {
             steps {
                 bat 'docker compose -f docker-compose.yml -f docker-compose.prod.yml build'
