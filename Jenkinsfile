@@ -51,6 +51,14 @@ pipeline {
                 bat 'docker compose -f docker-compose.yml -f docker-compose.prod.yml build'
             } 
         }
+        stage('Verify Docker Image') {
+    steps {
+        bat '''
+        echo ===== CHECKING ORDER IMAGE =====
+        docker run --rm manishhd01/order-service:latest cat -v /app/entrypoint.sh
+        '''
+    }
+}
 
         stage('Docker Hub Login') {
             steps {
