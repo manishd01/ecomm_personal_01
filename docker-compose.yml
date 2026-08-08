@@ -292,7 +292,7 @@ services:
   # =========================================================
 
   promtail:
-    image: grafana/promtail:2.9.8
+    image: grafana/promtail:3.4.6
     container_name: promtail
     restart: unless-stopped
 
