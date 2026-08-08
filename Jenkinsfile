@@ -29,6 +29,13 @@ pipeline {
                     git config core.autocrlf false
                     git config core.eol lf
 
+                    echo ===== CHECK EFFECTIVE CONFIG =====
+                    git config --show-origin --get core.autocrlf
+                    git config --show-origin --get core.eol
+
+                    echo ===== CHECK ATTRIBUTES =====
+                    git check-attr text eol -- order-service/entrypoint.sh
+
                     echo ===== RESTORE FILES =====
                     git checkout -- .
 
