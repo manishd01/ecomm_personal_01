@@ -27,7 +27,7 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Fix Line Endings') {
+        stage('Fix Line Endings: CRLF/LF') {
             steps {
                 bat '''
                     echo ===== CONFIGURE GIT =====
@@ -56,7 +56,7 @@ pipeline {
         }
         
 
-        stage('Verify Entrypoint Line Endings') {
+        stage('Verify CRLF/LF : for entrypoint file') {
             steps {
                 bat '''
                 echo ===== ORDER =====
