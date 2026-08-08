@@ -22,7 +22,28 @@ pipeline {
                 checkout scm
             }
         }
+        stage('Fix Line Endings') {
+            steps {
+                bat '''
+                    echo ===== CONFIGURE GIT =====
+                    git config core.autocrlf false
+                    git config core.eol lf
+
+                    echo ===== RESTORE FILES =====
+                    git checkout -- .
+
+                    echo ===== VERIFY ENTRYPOINTS =====
+                    git ls-files --eol order-service/entrypoint.sh
+                    git ls-files --eol inventory-service/entrypoint.sh
+                    git ls-files --eol customer-service/entrypoint.sh
+                    git ls-files --eol payment-service/entrypoint.sh
+                    git ls-files --eol notification-service/entrypoint.sh
+                    git ls-files --eol shipping-service/entrypoint.sh
+                '''
+            }
+        }
         
+
         stage('Verify Entrypoint Line Endings') {
             steps {
                 bat '''
@@ -51,14 +72,14 @@ pipeline {
                 bat 'docker compose -f docker-compose.yml -f docker-compose.prod.yml build'
             } 
         }
-        stage('Verify Docker Image') {
-    steps {
-        bat '''
-        echo ===== CHECKING ORDER IMAGE =====
-        docker run --rm manishhd01/order-service:latest cat -v /app/entrypoint.sh
-        '''
-    }
-}
+        // stage('Verify Docker Image') {
+        //     steps {
+        //         bat '''
+        //         echo ===== CHECKING ORDER IMAGE =====
+        //         docker run --rm manishhd01/order-service:latest cat -v /app/entrypoint.sh
+        //         '''
+        //     }
+        // }
 
         stage('Docker Hub Login') {
             steps {
