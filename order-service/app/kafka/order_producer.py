@@ -4,6 +4,8 @@ import time
 
 from common_logging.logging_config import setup_logger
 
+# from ....common_logging.logging_config import setup_logger
+#
 logger = setup_logger("order-service")
 
 producer = None

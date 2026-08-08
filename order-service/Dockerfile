@@ -14,6 +14,8 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 # Step 3: copy rest of code
 COPY order-service /app
+# Step 4: copy shared logging package
+COPY common_logging /app/common_logging
 
 # Copy entrypoint script
 COPY order-service/entrypoint.sh /app/entrypoint.sh
