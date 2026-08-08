@@ -2,16 +2,15 @@
 
 echo "Waiting for MySQL..."
 
-while ! nc -z mysql 3306; do
-  sleep 2
+until nc -z "$DB_HOST" "$DB_PORT"; do
+    echo "MySQL not ready, waiting..."
+    sleep 2
 done
 
 echo "MySQL is ready!"
 
 echo "Running shipping migrations..."
-
 alembic upgrade head
 
 echo "Starting Shipping API on port 8000..."
-
 uvicorn app.main:app --host 0.0.0.0 --port 8000

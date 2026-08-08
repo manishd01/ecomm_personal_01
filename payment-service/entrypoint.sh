@@ -2,9 +2,9 @@
 
 echo "Waiting for MySQL..."
 
-until nc -z $DB_HOST $DB_PORT; do
-  echo "MySQL not ready, waiting..."
-  sleep 2
+until nc -z "$DB_HOST" "$DB_PORT"; do
+    echo "MySQL not ready, waiting..."
+    sleep 2
 done
 
 echo "MySQL is ready!"
