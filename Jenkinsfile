@@ -1,3 +1,4 @@
+```groovy
 pipeline {
     agent any
 
@@ -79,28 +80,26 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 withCredentials([file(credentialsId: 'ec2-pem-file_Secret_file', variable: 'EC2_KEY')]) {
-                    bat """
-                    echo Using key: %EC2_KEY%
-                    echo ===== WHOAMI =====
-                    whoami
+                bat """
+                echo Using key: %EC2_KEY%
+                echo ===== WHOAMI =====
+                whoami
 
-                    echo ===== USERNAME =====
-                    echo %USERNAME%
+                echo ===== USERNAME =====
+                echo %USERNAME%
 
-                    echo ===== FILE PERMISSIONS BEFORE =====
-                    icacls "%EC2_KEY%"
+                echo ===== FILE PERMISSIONS BEFORE =====
+                icacls "%EC2_KEY%"
 
+                icacls "%EC2_KEY%" /inheritance:r
+                icacls "%EC2_KEY%" /remove:g "BUILTIN\\Users"
+                icacls "%EC2_KEY%" /grant:r "SYSTEM:(R)"
 
-
-                    icacls "%EC2_KEY%" /inheritance:r
-                    icacls "%EC2_KEY%" /remove:g "BUILTIN\\Users"
-                    icacls "%EC2_KEY%" /grant:r "SYSTEM:(R)"
-
-                    ssh -i "%EC2_KEY%" ^
-                    -o StrictHostKeyChecking=no ^
-                    %EC2_USER%@%EC2_HOST% ^
-                    "cd /home/ubuntu/ecomm_personal_01 && git pull && docker compose pull && docker compose up -d"
-                    """
+                ssh -i "%EC2_KEY%" ^
+                -o StrictHostKeyChecking=no ^
+                %EC2_USER%@%EC2_HOST% ^
+                "cd /home/ubuntu/ecomm_personal_01 && git pull && docker compose -f docker-compose.yml -f docker-compose.prod.yml pull && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d"
+                """
                 }
             }
         }
@@ -117,4 +116,5 @@ pipeline {
         }
 
     }
-}   
+}
+```

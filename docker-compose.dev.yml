@@ -1,0 +1,160 @@
+# =========================================================
+# DEVELOPMENT CONFIGURATION
+#
+# Start:
+#
+# docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+#
+# =========================================================
+
+services:
+  # =========================================================
+  # ZOOKEEPER
+  # =========================================================
+
+  zookeeper:
+    ports:
+      - "2182:2181"
+
+  # =========================================================
+  # KAFKA
+  # =========================================================
+
+  kafka:
+    ports:
+      - "9093:9092"
+
+  # =========================================================
+  # MYSQL
+  # =========================================================
+
+  mysql:
+    ports:
+      - "3308:3306"
+
+  # =========================================================
+  # ORDER SERVICE
+  # =========================================================
+
+  order-service:
+    image: manishhd01/order-service:dev
+
+    ports:
+      - "8100:8000"
+
+    volumes:
+      - ./order-service:/app
+      - ./common_logging:/app/common_logging
+
+  # =========================================================
+  # INVENTORY SERVICE
+  # =========================================================
+
+  inventory-service:
+    image: manishhd01/inventory-service:dev
+
+    ports:
+      - "8101:8000"
+
+    volumes:
+      - ./inventory-service:/app
+      - ./common_logging:/app/common_logging
+
+  # =========================================================
+  # CUSTOMER SERVICE
+  # =========================================================
+
+  customer-service:
+    image: manishhd01/customer-service:dev
+
+    ports:
+      - "8102:8000"
+
+    volumes:
+      - ./customer-service:/app
+      - ./common_logging:/app/common_logging
+
+  # =========================================================
+  # PAYMENT SERVICE
+  # =========================================================
+
+  payment-service:
+    image: manishhd01/payment-service:dev
+
+    ports:
+      - "8103:8000"
+
+    volumes:
+      - ./payment-service:/app
+      - ./common_logging:/app/common_logging
+
+  # =========================================================
+  # NOTIFICATION SERVICE
+  # =========================================================
+
+  notification-service:
+    image: manishhd01/notification-service:dev
+
+    ports:
+      - "8104:8000"
+
+    volumes:
+      - ./notification-service:/app
+      - ./common_logging:/app/common_logging
+
+  # =========================================================
+  # SHIPPING SERVICE
+  # =========================================================
+
+  shipping-service:
+    image: manishhd01/shipping-service:dev
+
+    ports:
+      - "8105:8000"
+
+    volumes:
+      - ./shipping-service:/app
+      - ./common_logging:/app/common_logging
+
+  # =========================================================
+  # FRONTEND
+  # =========================================================
+
+  frontend:
+    image: manishhd01/frontend:dev
+
+    build:
+      context: ./frontend
+
+      args:
+        REACT_APP_API_HOST: http://localhost
+        REACT_APP_ENV: development
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      REACT_APP_ENV: development
+      REACT_APP_API_HOST: http://localhost
+
+  # =========================================================
+  # LOKI
+  # =========================================================
+
+  loki:
+    ports:
+      - "3101:3100"
+
+  # =========================================================
+  # GRAFANA
+  # =========================================================
+
+  grafana:
+    ports:
+      - "3002:3000"
