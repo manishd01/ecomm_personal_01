@@ -329,7 +329,8 @@ services:
     image: jenkins/jenkins:lts
     container_name: jenkins
     restart: unless-stopped
-
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false #needed for mirgation, want to use, old user and datafor jenkins
     ports:
       - "8081:8080"
       - "50000:50000"
