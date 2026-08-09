@@ -321,6 +321,25 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
 
+  # =========================
+  # JENKINS
+  # =========================
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    restart: unless-stopped
+
+    ports:
+      - "8081:8080"
+      - "50000:50000"
+
+    volumes:
+      - jenkins_home:/var/jenkins_home
+
+    networks:
+      - app-network
+
 # =========================================================
 # VOLUMES
 # =========================================================
@@ -331,6 +350,11 @@ volumes:
   kafka_data:
   zookeeper_data:
   zookeeper_log:
+  jenkins_home:
+
+networks:
+  app-network:
+    driver: bridge
 
 # # services:
 # # test comment:
