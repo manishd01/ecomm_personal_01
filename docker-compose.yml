@@ -336,7 +336,8 @@ services:
       - "50000:50000"
 
     volumes:
-      - jenkins_home:/var/jenkins_home
+      # - jenkins_home:/var/jenkins_home
+      - ecomm_jenkins_home:/var/jenkins_home #for using old data forjenkins
 
     networks:
       - app-network
@@ -351,7 +352,8 @@ volumes:
   kafka_data:
   zookeeper_data:
   zookeeper_log:
-  jenkins_home:
+  # jenkins_home:
+  ecomm_jenkins_home:
 
 networks:
   app-network:
