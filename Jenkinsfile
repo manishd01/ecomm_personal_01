@@ -29,7 +29,7 @@ pipeline {
         }
         stage('Fix Line Endings: CRLF/LF') {
             steps {
-                bat '''
+                sh '''
                     echo ===== CONFIGURE GIT =====
                     git config core.autocrlf false
                     git config core.eol lf
@@ -58,7 +58,7 @@ pipeline {
 
         stage('Verify CRLF/LF : for entrypoint file') {
             steps {
-                bat '''
+                sh '''
                 echo ===== ORDER =====
                 git ls-files --eol order-service/entrypoint.sh
 
@@ -81,12 +81,12 @@ pipeline {
         }
         stage('Build Docker Images') {
             steps {
-                bat 'docker compose -f docker-compose.yml -f docker-compose.prod.yml build'
+                sh 'docker compose -f docker-compose.yml -f docker-compose.prod.yml build'
             } 
         }
         // stage('Verify Docker Image') {
         //     steps {
-        //         bat '''
+        //         sh '''
         //         echo ===== CHECKING ORDER IMAGE =====
         //         docker run --rm manishhd01/order-service:latest cat -v /app/entrypoint.sh
         //         '''
@@ -95,7 +95,7 @@ pipeline {
 
         stage('Docker Hub Login') {
             steps {
-                bat '''
+                sh '''
                 echo %DOCKER_HUB_PSW% | docker login -u %DOCKER_HUB_USR% --password-stdin
                 '''
             }
@@ -103,20 +103,20 @@ pipeline {
 
         stage('Push Docker Images') {
             steps {
-                bat 'docker push manishhd01/order-service:latest'
-                bat 'docker push manishhd01/inventory-service:latest'
-                bat 'docker push manishhd01/customer-service:latest'
-                bat 'docker push manishhd01/payment-service:latest'
-                bat 'docker push manishhd01/notification-service:latest'
-                bat 'docker push manishhd01/shipping-service:latest'
-                bat 'docker push manishhd01/frontend:latest'
+                sh 'docker push manishhd01/order-service:latest'
+                sh 'docker push manishhd01/inventory-service:latest'
+                sh 'docker push manishhd01/customer-service:latest'
+                sh 'docker push manishhd01/payment-service:latest'
+                sh 'docker push manishhd01/notification-service:latest'
+                sh 'docker push manishhd01/shipping-service:latest'
+                sh 'docker push manishhd01/frontend:latest'
             }
         }
 
         // stage('Deploy to EC2') {
         //     steps {
         //         sshagent(credentials: ['ec2-ssh-key']) {
-        //             bat """
+        //             sh """
         //             ssh -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% ^
         //             "cd ~/ecommerce-microservices && docker compose pull && docker compose up -d"
         //             """
@@ -129,7 +129,7 @@ pipeline {
         //     steps {
         //         withCredentials([file(credentialsId: 'ec2-pem-file_Secret_file', variable: 'PEM_FILE')]) {
 
-        //             bat """
+        //             sh """
         //             ssh -i "%PEM_FILE%" ^
         //             -o StrictHostKeyChecking=no ^
         //             ubuntu@3.226.15.198 ^
@@ -144,7 +144,7 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 withCredentials([file(credentialsId: 'ec2-pem-file_Secret_file', variable: 'EC2_KEY')]) {
-                bat """
+                sh """
                 echo Using key: %EC2_KEY%
                 echo ===== WHOAMI =====
                 whoami
