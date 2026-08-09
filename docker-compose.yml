@@ -354,6 +354,8 @@ volumes:
   zookeeper_log:
   # jenkins_home:
   ecomm_jenkins_home:
+    external: true
+    name: ecomm_jenkins_home
 
 networks:
   app-network:
