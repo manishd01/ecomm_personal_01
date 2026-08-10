@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -8,7 +7,6 @@ pipeline {
         EC2_HOST = "3.226.15.198"
         EC2_USER = "ubuntu"
         // EC2_KEY = "M:\\projects\\Resum_project\\ecomm\\ecomm_Server_key.pem" /// for now hardcode, will change laterL
-
     }
 
     triggers {
@@ -27,6 +25,7 @@ pipeline {
                 checkout scm
             }
         }
+
         stage('Fix Line Endings: CRLF/LF') {
             steps {
                 sh '''
@@ -54,36 +53,37 @@ pipeline {
                 '''
             }
         }
-        
 
         stage('Verify CRLF/LF : for entrypoint file') {
             steps {
                 sh '''
-                echo ===== ORDER =====
-                git ls-files --eol order-service/entrypoint.sh
+                    echo ===== ORDER =====
+                    git ls-files --eol order-service/entrypoint.sh
 
-                echo ===== INVENTORY =====
-                git ls-files --eol inventory-service/entrypoint.sh
+                    echo ===== INVENTORY =====
+                    git ls-files --eol inventory-service/entrypoint.sh
 
-                echo ===== CUSTOMER =====
-                git ls-files --eol customer-service/entrypoint.sh
+                    echo ===== CUSTOMER =====
+                    git ls-files --eol customer-service/entrypoint.sh
 
-                echo ===== PAYMENT =====
-                git ls-files --eol payment-service/entrypoint.sh
+                    echo ===== PAYMENT =====
+                    git ls-files --eol payment-service/entrypoint.sh
 
-                echo ===== NOTIFICATION =====
-                git ls-files --eol notification-service/entrypoint.sh
+                    echo ===== NOTIFICATION =====
+                    git ls-files --eol notification-service/entrypoint.sh
 
-                echo ===== SHIPPING =====
-                git ls-files --eol shipping-service/entrypoint.sh
+                    echo ===== SHIPPING =====
+                    git ls-files --eol shipping-service/entrypoint.sh
                 '''
             }
         }
+
         stage('Build Docker Images') {
             steps {
                 sh 'docker compose -f docker-compose.yml -f docker-compose.prod.yml build'
-            } 
+            }
         }
+
         // stage('Verify Docker Image') {
         //     steps {
         //         sh '''
@@ -96,7 +96,7 @@ pipeline {
         stage('Docker Hub Login') {
             steps {
                 sh '''
-                echo "$DOCKER_HUB_PSW" | docker login -u "$DOCKER_HUB_USR" --password-stdin
+                    echo "$DOCKER_HUB_PSW" | docker login -u "$DOCKER_HUB_USR" --password-stdin
                 '''
             }
         }
@@ -158,9 +158,9 @@ pipeline {
                 }
             }
         }
+    }
 
     post {
-
         success {
             echo "Deployment Successful!"
         }
@@ -168,7 +168,5 @@ pipeline {
         failure {
             echo "Deployment Failed!"
         }
-
     }
 }
-
