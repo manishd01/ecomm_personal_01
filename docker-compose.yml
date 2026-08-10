@@ -326,7 +326,6 @@ services:
   # =========================
 
   jenkins:
-    jenkins:
     build:
       context: ./jenkins
     container_name: jenkins
