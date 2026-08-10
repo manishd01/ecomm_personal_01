@@ -12,10 +12,4 @@ RUN mkdir -p /usr/local/lib/docker/cli-plugins \
        -o /usr/local/lib/docker/cli-plugins/docker-compose \
     && chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
-# Docker Buildx
-RUN mkdir -p /usr/local/lib/docker/cli-plugins \
-    && curl -SL https://github.com/docker/buildx/releases/latest/download/buildx-linux-amd64 \
-       -o /usr/local/lib/docker/cli-plugins/docker-buildx \
-    && chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
-
 USER jenkins
