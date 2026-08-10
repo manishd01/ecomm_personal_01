@@ -326,7 +326,9 @@ services:
   # =========================
 
   jenkins:
-    image: jenkins/jenkins:lts
+    jenkins:
+    build:
+      context: ./jenkins
     container_name: jenkins
     restart: unless-stopped
     environment:
@@ -338,6 +340,7 @@ services:
     volumes:
       # - jenkins_home:/var/jenkins_home
       - ecomm_jenkins_home:/var/jenkins_home #for using old data forjenkins
+      - /var/run/docker.sock:/var/run/docker.sock
 
     networks:
       - app-network
