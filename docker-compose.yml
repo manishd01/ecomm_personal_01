@@ -239,6 +239,26 @@ services:
         condition: service_started
 
   # =========================================================
+  # AI SERVICE
+  # =========================================================
+  ai-service:
+    build:
+      context: .
+      dockerfile: ai-service/Dockerfile
+
+    image: manishhd01/ai-service:latest
+
+    container_name: ai-service
+
+    restart: unless-stopped
+
+    environment:
+      # OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+    volumes:
+      - ./ai-service/data/chroma:/app/data/chroma
+  # =========================================================
   # FRONTEND
   # =========================================================
 
@@ -360,10 +380,22 @@ volumes:
   ecomm_jenkins_home:
     external: true
     name: ecomm_jenkins_home
+  # ai_chroma_data: #already written in servcie codeL volumes:----
 
 networks:
   app-network:
     driver: bridge
+
+# -
+
+# Development
+# docker compose --env-file .env.development up -d
+
+# # Production
+# docker compose --env-file .env.production up -d
+# ---------------------------------------------------
+# -----------------------------------------------------
+# ----------------------------------------------------
 
 # # services:
 # # test comment:

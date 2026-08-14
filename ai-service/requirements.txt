@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+
+langchain
+langchain-text-splitters
+
+chromadb
+langchain-chroma
+
+python-dotenv
+langchain-google-genai
+sentence-transformers

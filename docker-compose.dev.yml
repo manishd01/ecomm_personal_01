@@ -117,6 +117,24 @@ services:
       - ./common_logging:/app/common_logging
 
   # =========================================================
+  # AI SERVICE
+  # =========================================================
+
+  ai-service:
+    ports:
+      - "8007:8000"
+
+    environment:
+      ENVIRONMENT: development
+
+    volumes:
+      - ./ai-service/data/chroma:/app/data/chroma
+      - ./ai-service/app:/app/app
+      - ./ai-service/knowledge:/app/knowledge
+
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # =========================================================
   # FRONTEND
   # =========================================================
 
@@ -127,8 +145,8 @@ services:
       context: ./frontend
 
       args:
-        REACT_APP_API_HOST: http://localhost
-        REACT_APP_ENV: development
+        REACT_APP_API_HOST: ${REACT_APP_API_HOST}
+        REACT_APP_ENV: ${REACT_APP_ENV}
 
     ports:
       - "3000:3000"
@@ -140,8 +158,8 @@ services:
     environment:
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
-      REACT_APP_ENV: development
-      REACT_APP_API_HOST: http://localhost
+      # REACT_APP_ENV: development
+      # REACT_APP_API_HOST: http://localhost
 
   # =========================================================
   # LOKI
