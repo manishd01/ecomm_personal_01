@@ -1,6 +1,7 @@
 from sentence_transformers import CrossEncoder
 
-RERANKER_MODEL = "BAAI/bge-reranker-v2-m3"
+# RERANKER_MODEL = "BAAI/bge-reranker-v2-m3" # heavey one
+RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L6-v2"  # chepaer and light
 
 reranker = CrossEncoder(RERANKER_MODEL)
 
@@ -10,6 +11,7 @@ def rerank_documents(
     documents,
     top_n: int = 3,
 ):
+
     pairs = [(question, document.page_content) for document in documents]
 
     scores = reranker.predict(pairs)

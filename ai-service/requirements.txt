@@ -1,12 +1,14 @@
 fastapi
-uvicorn[standard]
+uvicorn
+python-dotenv
 
 langchain
+langchain-core
+langchain-chroma
 langchain-text-splitters
+langchain-google-genai
+langchain-huggingface
 
 chromadb
-langchain-chroma
 
-python-dotenv
-langchain-google-genai
 sentence-transformers

@@ -1,17 +1,36 @@
 from langchain_chroma import Chroma
+from app.reranker import rerank_documents  # for ranking the reranker file..
 
-# from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
 from langchain_google_genai import (
     ChatGoogleGenerativeAI,
-    GoogleGenerativeAIEmbeddings,
 )
+
+from langchain_huggingface import HuggingFaceEmbeddings
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 CHROMA_DIR = "/app/data/chroma"
 COLLECTION_NAME = "ecommerce_knowledge"
 
 
 def get_vector_store():
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+
+    # LOCAL EMBEDDING MODEL
+    # No Gemini API call happens here.
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={
+            "device": "cpu",
+        },
+        encode_kwargs={
+            "normalize_embeddings": True,
+        },
+    )
 
     return Chroma(
         collection_name=COLLECTION_NAME,
@@ -24,30 +43,46 @@ def retrieve_documents(
     question: str,
     k: int = 6,
 ):
+
     vector_store = get_vector_store()
 
-    return vector_store.similarity_search(
+    results = vector_store.similarity_search_with_score(
         question,
         k=k,
     )
 
+    # here we are getting, first n element from what we got from. in prev step . (not reranker)...
 
-def rerank_documents(
-    question: str,
-    documents,
-    top_n: int = 3,
-):
-    """
-    Initial reranking stage.
+    return [document for document, score in results]
 
-    We retrieve more candidates first and then keep
-    the strongest candidates for the LLM.
-    """
 
-    return documents[:top_n]
+# def rerank_documents(
+
+# question: str,
+
+# documents,
+
+# top_n: int = 3,
+
+# ):
+
+# """
+
+# Initial reranking stage.
+
+# We retrieve more candidates first and then keep
+
+# the strongest candidates for the LLM.
+
+# """
+
+# return documents[:top_n]
+
+# with reranker:
 
 
 def generate_answer(question: str, documents):
+
     context = "\n\n".join(document.page_content for document in documents)
 
     prompt = f"""
@@ -70,8 +105,13 @@ Customer question:
 {question}
 """
 
+    # llm = ChatGoogleGenerativeAI(
+    #     model="gemini-3.6-flash",
+    # )   #expesive:
+
+    # cheap model:
     llm = ChatGoogleGenerativeAI(
-        model="gemini-3.6-flash",
+        model="gemini-2.5-flash-lite",
     )
 
     response = llm.invoke(prompt)
@@ -87,6 +127,7 @@ Customer question:
 
 
 def answer_question(question: str):
+
     candidates = retrieve_documents(
         question,
         k=6,

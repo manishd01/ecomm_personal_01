@@ -102,8 +102,11 @@ async def lifespan(app: FastAPI):
     watcher.cancel()
 
     try:
+
         await watcher
+
     except asyncio.CancelledError:
+
         pass
 
     print(
@@ -135,3 +138,7 @@ def health():
 def ask(request: ChatRequest):
 
     return answer_question(request.question)
+
+
+# docker compose --env-file .env.development -f docker-compose.yml -f docker-compose.dev.yml build --no-cache ai-service    ----building containnere.....
+# docker compose --env-file .env.development -f docker-compose.yml -f docker-compose.dev.yml up ai-service                   ====s tarting ctonianer:

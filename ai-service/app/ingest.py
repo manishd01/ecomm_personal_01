@@ -3,7 +3,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+# from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+from langchain_huggingface import HuggingFaceEmbeddings
+
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 load_dotenv()
@@ -16,6 +20,7 @@ COLLECTION_NAME = "ecommerce_knowledge"
 
 
 def load_document(file_path: Path) -> Document:
+
     content = file_path.read_text(encoding="utf-8")
 
     return Document(
@@ -28,6 +33,7 @@ def load_document(file_path: Path) -> Document:
 
 
 def split_document(document: Document) -> list[Document]:
+
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=800,
         chunk_overlap=150,
@@ -43,6 +49,7 @@ def split_document(document: Document) -> list[Document]:
     chunks = splitter.split_documents([document])
 
     for index, chunk in enumerate(chunks):
+
         chunk.metadata["chunk_id"] = index
 
     return chunks
@@ -50,7 +57,18 @@ def split_document(document: Document) -> list[Document]:
 
 def create_vector_store() -> Chroma:
 
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+    # LOCAL EMBEDDING MODEL
+    # This is the SAME model used by rag.py.
+    # No Gemini API call is made during ingestion.
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={
+            "device": "cpu",
+        },
+        encode_kwargs={
+            "normalize_embeddings": True,
+        },
+    )
 
     vector_store = Chroma(
         collection_name=COLLECTION_NAME,
@@ -63,7 +81,10 @@ def create_vector_store() -> Chroma:
 
 def ingest_file(file_path: Path):
 
-    print(f"Starting ingestion for: {file_path.name}", flush=True)
+    print(
+        f"Starting ingestion for: {file_path.name}",
+        flush=True,
+    )
 
     # -----------------------------------------
     # 1. Load ONLY this document
@@ -99,7 +120,11 @@ def ingest_file(file_path: Path):
 
     source = file_path.name
 
-    existing = vector_store.get(where={"source": source})
+    existing = vector_store.get(
+        where={
+            "source": source,
+        }
+    )
 
     if existing["ids"]:
 
@@ -140,6 +165,7 @@ def ingest_knowledge():
     )
 
     for file_path in sorted(KNOWLEDGE_DIR.glob("*.md")):
+
         ingest_file(file_path)
 
     print(
