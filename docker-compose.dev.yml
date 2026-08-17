@@ -131,6 +131,7 @@ services:
       - ./ai-service/data/chroma:/app/data/chroma
       - ./ai-service/app:/app/app
       - ./ai-service/knowledge:/app/knowledge
+      - ai_huggingface_cache:/root/.cache/huggingface
 
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
@@ -143,7 +144,7 @@ services:
 
     build:
       context: ./frontend
-
+      target: development
       args:
         REACT_APP_API_HOST: ${REACT_APP_API_HOST}
         REACT_APP_ENV: ${REACT_APP_ENV}

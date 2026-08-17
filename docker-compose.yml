@@ -278,12 +278,13 @@ services:
     stdin_open: true
     tty: true
 
-    depends_on:
-      - order-service
-      - inventory-service
-      - payment-service
-      - customer-service
-      - notification-service
+    # not needed. not a compulsion
+    # depends_on:
+    #   - order-service
+    #   - inventory-service
+    #   - payment-service
+    #   - customer-service
+    #   - notification-service
 
     # volumes:
     #   - ./frontend:/app
@@ -377,6 +378,7 @@ volumes:
   zookeeper_data:
   zookeeper_log:
   # jenkins_home:
+  ai_huggingface_cache:
   ecomm_jenkins_home:
     external: true
     name: ecomm_jenkins_home

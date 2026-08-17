@@ -1,11 +1,13 @@
 import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
+from fastapi.middleware.cors import CORSMiddleware
+
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from app.ingest import ingest_file
+from app.ingest import ingest_file, ingest_knowledge
 from app.rag import answer_question
 
 KNOWLEDGE_DIR = Path("/app/knowledge")
@@ -90,6 +92,8 @@ async def watch_knowledge():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
+    await asyncio.to_thread(ingest_knowledge)
+
     watcher = asyncio.create_task(watch_knowledge())
 
     print(
@@ -102,11 +106,8 @@ async def lifespan(app: FastAPI):
     watcher.cancel()
 
     try:
-
         await watcher
-
     except asyncio.CancelledError:
-
         pass
 
     print(
@@ -119,6 +120,14 @@ app = FastAPI(
     title="E-commerce AI Service",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

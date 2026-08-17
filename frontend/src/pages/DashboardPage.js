@@ -18,6 +18,7 @@ import PaymentsTable from "../components/payments/PaymentsTable";
 import NotificationsList from "../components/notifications/NotificationsList";
 
 import ShipmentsList from "../components/shipping/ShipmentsList";
+import AIAssistantPage from "./AIAssistantPage";
 
 function DashboardPage() {
   const [activeTab, setActiveTab] = useState("orders");
@@ -71,6 +72,9 @@ function DashboardPage() {
             addShipmentToUI={addShipmentToUI}
           />
         );
+
+      case "ai":
+        return <AIAssistantPage />;
 
       default:
         return <OrdersTable orders={orders} />;
@@ -133,6 +137,12 @@ function DashboardPage() {
             onClick={() => setActiveTab("shipments")}
           >
             Shipments
+          </button>
+          <button
+            className={activeTab === "ai" ? "active" : ""}
+            onClick={() => setActiveTab("ai")}
+          >
+            🤖 AI Assistant
           </button>
         </aside>
 

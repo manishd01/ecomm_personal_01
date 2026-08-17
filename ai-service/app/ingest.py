@@ -18,6 +18,16 @@ CHROMA_DIR = "/app/data/chroma"
 
 COLLECTION_NAME = "ecommerce_knowledge"
 
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    model_kwargs={
+        "device": "cpu",
+    },
+    encode_kwargs={
+        "normalize_embeddings": True,
+    },
+)
+
 
 def load_document(file_path: Path) -> Document:
 
@@ -60,15 +70,6 @@ def create_vector_store() -> Chroma:
     # LOCAL EMBEDDING MODEL
     # This is the SAME model used by rag.py.
     # No Gemini API call is made during ingestion.
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2",
-        model_kwargs={
-            "device": "cpu",
-        },
-        encode_kwargs={
-            "normalize_embeddings": True,
-        },
-    )
 
     vector_store = Chroma(
         collection_name=COLLECTION_NAME,

@@ -1,13 +1,8 @@
 from langchain_chroma import Chroma
-from app.reranker import rerank_documents  # for ranking the reranker file..
-
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-
-from langchain_google_genai import (
-    ChatGoogleGenerativeAI,
-)
-
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_huggingface import HuggingFaceEmbeddings
+
+from app.reranker import rerank_documents
 
 from dotenv import load_dotenv
 
@@ -18,25 +13,30 @@ CHROMA_DIR = "/app/data/chroma"
 COLLECTION_NAME = "ecommerce_knowledge"
 
 
-def get_vector_store():
+# --------------------------------------------------
+# Load embedding model ONCE
+# --------------------------------------------------
 
-    # LOCAL EMBEDDING MODEL
-    # No Gemini API call happens here.
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2",
-        model_kwargs={
-            "device": "cpu",
-        },
-        encode_kwargs={
-            "normalize_embeddings": True,
-        },
-    )
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    model_kwargs={
+        "device": "cpu",
+    },
+    encode_kwargs={
+        "normalize_embeddings": True,
+    },
+)
 
-    return Chroma(
-        collection_name=COLLECTION_NAME,
-        embedding_function=embeddings,
-        persist_directory=CHROMA_DIR,
-    )
+
+# --------------------------------------------------
+# Create Chroma connection ONCE
+# --------------------------------------------------
+
+vector_store = Chroma(
+    collection_name=COLLECTION_NAME,
+    embedding_function=embeddings,
+    persist_directory=CHROMA_DIR,
+)
 
 
 def retrieve_documents(
@@ -44,41 +44,12 @@ def retrieve_documents(
     k: int = 6,
 ):
 
-    vector_store = get_vector_store()
-
     results = vector_store.similarity_search_with_score(
         question,
         k=k,
     )
 
-    # here we are getting, first n element from what we got from. in prev step . (not reranker)...
-
     return [document for document, score in results]
-
-
-# def rerank_documents(
-
-# question: str,
-
-# documents,
-
-# top_n: int = 3,
-
-# ):
-
-# """
-
-# Initial reranking stage.
-
-# We retrieve more candidates first and then keep
-
-# the strongest candidates for the LLM.
-
-# """
-
-# return documents[:top_n]
-
-# with reranker:
 
 
 def generate_answer(question: str, documents):
@@ -105,22 +76,20 @@ Customer question:
 {question}
 """
 
-    # llm = ChatGoogleGenerativeAI(
-    #     model="gemini-3.6-flash",
-    # )   #expesive:
-
-    # cheap model:
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash-lite",
+        model="gemini-3.5-flash-lite",
     )
 
     response = llm.invoke(prompt)
 
     if isinstance(response.content, list):
+
         answer = "".join(
             item.get("text", "") for item in response.content if isinstance(item, dict)
         )
+
     else:
+
         answer = response.content
 
     return answer
