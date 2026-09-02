@@ -3,8 +3,11 @@
 #
 # Start:
 #
-# docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+# docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+# docker compose -f docker-compose.yml -f docker-compose.dev.yml up     #  do not build
 #
+# # docker compose --env-file .env.development -f docker-compose.yml -f docker-compose.dev.yml up ai-service                   ====starting container:
+
 # =========================================================
 
 services:
@@ -14,15 +17,17 @@ services:
 
   zookeeper:
     ports:
-      - "2182:2181"
+      - "2181:2181"
 
   # =========================================================
   # KAFKA
   # =========================================================
-
+  kafka-ui:
+    ports:
+      - "8086:8080" #no need to aadd in prod docker. casue willl not exposee..
   kafka:
     ports:
-      - "9093:9092"
+      - "9092:9092"
 
   # =========================================================
   # MYSQL
@@ -30,7 +35,7 @@ services:
 
   mysql:
     ports:
-      - "3308:3306"
+      - "3307:3306"
 
   # =========================================================
   # ORDER SERVICE
@@ -40,7 +45,7 @@ services:
     image: manishhd01/order-service:dev
 
     ports:
-      - "8100:8000"
+      - "8000:8000"
 
     volumes:
       - ./order-service:/app
@@ -54,7 +59,7 @@ services:
     image: manishhd01/inventory-service:dev
 
     ports:
-      - "8101:8000"
+      - "8001:8000"
 
     volumes:
       - ./inventory-service:/app
@@ -68,7 +73,7 @@ services:
     image: manishhd01/customer-service:dev
 
     ports:
-      - "8102:8000"
+      - "8002:8000"
 
     volumes:
       - ./customer-service:/app
@@ -82,7 +87,7 @@ services:
     image: manishhd01/payment-service:dev
 
     ports:
-      - "8103:8000"
+      - "8003:8000"
 
     volumes:
       - ./payment-service:/app
@@ -96,7 +101,7 @@ services:
     image: manishhd01/notification-service:dev
 
     ports:
-      - "8104:8000"
+      - "8004:8000"
 
     volumes:
       - ./notification-service:/app
@@ -110,7 +115,7 @@ services:
     image: manishhd01/shipping-service:dev
 
     ports:
-      - "8105:8000"
+      - "8005:8000"
 
     volumes:
       - ./shipping-service:/app
@@ -159,8 +164,8 @@ services:
     environment:
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
-      # REACT_APP_ENV: development
-      # REACT_APP_API_HOST: http://localhost
+      REACT_APP_API_HOST: ${REACT_APP_API_HOST}
+      REACT_APP_ENV: ${REACT_APP_ENV}
 
   # =========================================================
   # LOKI
@@ -168,7 +173,7 @@ services:
 
   loki:
     ports:
-      - "3101:3100"
+      - "3100:3100"
 
   # =========================================================
   # GRAFANA
@@ -176,4 +181,4 @@ services:
 
   grafana:
     ports:
-      - "3002:3000"
+      - "3001:3000"

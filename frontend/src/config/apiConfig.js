@@ -13,6 +13,7 @@ const SERVICES = {
   payment: `${API_HOST}:8003`,
   notification: `${API_HOST}:8004`,
   shipping: `${API_HOST}:8005`,
+  ai: `${API_HOST}:8007`,
 };
 
 export const API_BASE_URLS = {
@@ -22,6 +23,7 @@ export const API_BASE_URLS = {
   PAYMENTS: `${SERVICES.payment}/api`,
   NOTIFICATIONS: `${SERVICES.notification}/api`,
   SHIPPING: `${SERVICES.shipping}/api`,
+  AI: `${SERVICES.ai}/api`,
 };
 
 export const HEALTH_URLS = {
@@ -31,6 +33,7 @@ export const HEALTH_URLS = {
   payment: `${SERVICES.payment}/api/health`,
   notification: `${SERVICES.notification}/api/health`,
   shipping: `${SERVICES.shipping}/api/health`,
+  ai: `${SERVICES.ai}/api/health`,
 };
 
 export const SWAGGER_URLS = {
@@ -40,6 +43,7 @@ export const SWAGGER_URLS = {
   payment: `${SERVICES.payment}/docs`,
   notification: `${SERVICES.notification}/docs`,
   shipping: `${SERVICES.shipping}/docs`,
+  ai: `${SERVICES.ai}/docs`,
 };
 
 export default API_BASE_URLS;

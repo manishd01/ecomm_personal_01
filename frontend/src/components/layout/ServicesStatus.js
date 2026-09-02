@@ -84,6 +84,20 @@ function ServicesStatus({ servicesHealth }) {
             📚 API Docs
           </a>
         </div>
+        {/* AI SERVICE */}{" "}
+        <div className="service-card">
+          {" "}
+          <h3>AI Service (8007)</h3> {renderStatus(servicesHealth.ai)}{" "}
+          <a
+            href={SWAGGER_URLS.ai}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="api-link"
+          >
+            {" "}
+            📚 API Docs{" "}
+          </a>{" "}
+        </div>
       </div>
     </section>
   );

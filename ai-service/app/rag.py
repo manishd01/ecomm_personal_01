@@ -1,3 +1,5 @@
+import os
+
 from langchain_chroma import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -76,8 +78,12 @@ Customer question:
 {question}
 """
 
+    # llm = ChatGoogleGenerativeAI(
+    #     model="gemini-3.5-flash-lite",
+    # )
     llm = ChatGoogleGenerativeAI(
         model="gemini-3.5-flash-lite",
+        google_api_key=os.environ["GEMINI_API_KEY"],
     )
 
     response = llm.invoke(prompt)

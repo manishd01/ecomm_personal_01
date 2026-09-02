@@ -1,0 +1,21 @@
+services:
+  jenkins:
+    build:
+      context: ./jenkins
+    container_name: jenkins
+    restart: unless-stopped
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false #needed for mirgation, want to use, old user and datafor jenkins
+    ports:
+      - "8082:8080"
+      - "50000:50000"
+
+    volumes:
+      # - jenkins_home:/var/jenkins_home
+      - ecomm_jenkins_home:/var/jenkins_home #for using old data forjenkins
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    group_add:
+      - "109"
+    networks:
+      - app-network

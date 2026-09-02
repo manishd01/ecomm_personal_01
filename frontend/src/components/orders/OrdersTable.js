@@ -21,7 +21,8 @@ function OrdersTable({ orders }) {
             <tbody>
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td>{order.id}</td>
+                  <td>{order.order_number}</td>
+
                   <td>{order.customer_id}</td>
                   <td>{order.product_id}</td>
                   <td>{order.quantity}</td>

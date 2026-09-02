@@ -41,6 +41,21 @@ services:
   # =========================================================
   # KAFKA
   # =========================================================
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+
+    depends_on:
+      - kafka
+      - zookeeper
+
+    networks:
+      - app-network
 
   kafka:
     image: confluentinc/cp-kafka:7.2.1
@@ -346,26 +361,26 @@ services:
   # JENKINS
   # =========================
 
-  jenkins:
-    build:
-      context: ./jenkins
-    container_name: jenkins
-    restart: unless-stopped
-    environment:
-      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false #needed for mirgation, want to use, old user and datafor jenkins
-    ports:
-      - "8081:8080"
-      - "50000:50000"
+  # jenkins:
+  #   build:
+  #     context: ./jenkins
+  #   container_name: jenkins
+  #   restart: unless-stopped
+  #   environment:
+  #     - JAVA_OPTS=-Djenkins.install.runSetupWizard=false #needed for mirgation, want to use, old user and datafor jenkins
+  #   ports:
+  #     - "8081:8080"
+  #     - "50000:50000"
 
-    volumes:
-      # - jenkins_home:/var/jenkins_home
-      - ecomm_jenkins_home:/var/jenkins_home #for using old data forjenkins
-      - /var/run/docker.sock:/var/run/docker.sock
+  #   volumes:
+  #     # - jenkins_home:/var/jenkins_home
+  #     - ecomm_jenkins_home:/var/jenkins_home #for using old data forjenkins
+  #     - /var/run/docker.sock:/var/run/docker.sock
 
-    group_add:
-      - "109"
-    networks:
-      - app-network
+  #   group_add:
+  #     - "109"
+  #   networks:
+  #     - app-network
 
 # =========================================================
 # VOLUMES

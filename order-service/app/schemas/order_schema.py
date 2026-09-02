@@ -27,11 +27,11 @@ class OrderUpdate(BaseModel):
 
 # 🔹 Response schema
 class OrderResponse(OrderBase):
-    id: int
+    order_number: str
     total_price: float
     status: str
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
 
     class Config:
-        from_attributes = True   # 🔥 important for SQLAlchemy
+        from_attributes = True  # 🔥 important for SQLAlchemy

@@ -24,6 +24,7 @@ export const checkAllServicesHealth = async () => {
     "payment",
     "notification",
     "shipping",
+    "ai",
   ];
   const checks = await Promise.all(
     services.map((service) => checkServiceHealth(service)),

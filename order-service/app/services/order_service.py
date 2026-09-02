@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import HTTPException
 from app.models.order_model import Order
 import requests
@@ -180,8 +182,10 @@ def create_new_order(order_data):
         try:
 
             total_price = product["price"] * order_data.quantity
+            order_number = f"ORD-{uuid.uuid4().hex[:12].upper()}"
 
             new_order = Order(
+                order_number=order_number,
                 customer_id=order_data.customer_id,
                 product_id=order_data.product_id,
                 quantity=order_data.quantity,

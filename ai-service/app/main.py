@@ -131,7 +131,7 @@ app.add_middleware(
 )
 
 
-@app.get("/health")
+@app.get("/api/health")
 def health():
 
     return {
@@ -147,6 +147,9 @@ def health():
 def ask(request: ChatRequest):
 
     return answer_question(request.question)
+
+
+# createt  id = 14  |     order_number = ORD-000014    | thiiswayyy
 
 
 # docker compose --env-file .env.development -f docker-compose.yml -f docker-compose.dev.yml build --no-cache ai-service    ----building containnere.....
