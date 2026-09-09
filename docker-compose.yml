@@ -398,6 +398,7 @@ volumes:
     external: true
     name: ecomm_jenkins_home
   # ai_chroma_data: #already written in servcie codeL volumes:----
+  ai_pip_cache:
 
 networks:
   app-network:

@@ -137,6 +137,7 @@ services:
       - ./ai-service/app:/app/app
       - ./ai-service/knowledge:/app/knowledge
       - ai_huggingface_cache:/root/.cache/huggingface
+      - ai_pip_cache:/root/.cache/pip
 
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 

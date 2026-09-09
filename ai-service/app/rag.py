@@ -8,6 +8,8 @@ from app.reranker import rerank_documents
 
 from dotenv import load_dotenv
 
+from app.bm25 import build_bm25_index
+
 load_dotenv()
 
 
@@ -39,6 +41,23 @@ vector_store = Chroma(
     embedding_function=embeddings,
     persist_directory=CHROMA_DIR,
 )
+
+bm25, bm25_documents = build_bm25_index(vector_store)
+
+
+def bm25_search(question: str, k: int = 10):
+    print(f"BM25 search for: {question}")
+    tokenized_query = question.lower().split()
+
+    scores = bm25.get_scores(tokenized_query)
+
+    ranked_indexes = sorted(
+        range(len(scores)),
+        key=lambda i: scores[i],
+        reverse=True,
+    )[:k]
+
+    return [bm25_documents[i] for i in ranked_indexes]
 
 
 def retrieve_documents(
@@ -101,21 +120,68 @@ Customer question:
     return answer
 
 
-def answer_question(question: str):
+def reciprocal_rank_fusion(
+    result_lists,
+    k: int = 60,
+):
+    scores = {}
+    documents = {}
 
-    candidates = retrieve_documents(
-        question,
-        k=6,
+    for results in result_lists:
+        for rank, document in enumerate(results, start=1):
+
+            doc_id = document.metadata.get("source", "") + document.page_content
+
+            rrf_score = 1 / (k + rank)
+
+            scores[doc_id] = scores.get(doc_id, 0) + rrf_score
+            documents[doc_id] = document
+
+    ranked = sorted(
+        scores.items(),
+        key=lambda item: item[1],
+        reverse=True,
     )
 
+    return [documents[doc_id] for doc_id, score in ranked]
+
+
+def answer_question(question: str):
+    print(f"\nQUESTION: {question}")
+
+    # 1. Dense vector retrieval
+    vector_candidates = retrieve_documents(
+        question,
+        k=10,
+    )
+    print(f"VECTOR RESULTS: {len(vector_candidates)}")
+
+    # 2. Lexical BM25 retrieval
+    bm25_candidates = bm25_search(
+        question,
+        k=10,
+    )
+    print(f"BM25 RESULTS: {len(bm25_candidates)}")
+
+    # 3. Combine both rankings
+    candidates = reciprocal_rank_fusion(
+        [
+            vector_candidates,
+            bm25_candidates,
+        ]
+    )
+    print(f"RRF RESULTS: {len(candidates)}")
+
+    # 4. CrossEncoder reranking
     ranked_documents = rerank_documents(
         question,
-        candidates,
+        candidates[:20],
         top_n=3,
     )
 
     relevant_documents = [document for document, score in ranked_documents]
 
+    # 5. LLM generation
     answer = generate_answer(
         question,
         relevant_documents,
