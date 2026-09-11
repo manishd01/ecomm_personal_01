@@ -1,10 +1,17 @@
 import React, { useState } from "react";
 import { askAI } from "../../services/aiService";
-
+import { useEffect, useRef } from "react";
 function AIAssistant() {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages]);
 
   const handleAsk = async () => {
     if (!question.trim() || loading) {
@@ -25,16 +32,46 @@ function AIAssistant() {
     setLoading(true);
 
     try {
-      const data = await askAI(currentQuestion);
+      // const data = await askAI(currentQuestion);
 
+      // setMessages((previous) => [
+      //   ...previous,
+      //   {
+      //     type: "assistant",
+      //     text: data.answer,
+      //     sources: data.sources || [],
+      //   },
+      // ]);
+
+      let finalAnswer = "";
+
+      // Add ONE empty assistant message first
       setMessages((previous) => [
         ...previous,
         {
           type: "assistant",
-          text: data.answer,
-          sources: data.sources || [],
+          text: "",
+          sources: [],
         },
       ]);
+
+      await askAI(currentQuestion, (streamedAnswer) => {
+        finalAnswer = streamedAnswer;
+
+        // Update the existing assistant message
+        setMessages((previous) => {
+          const messages = [...previous];
+
+          const lastIndex = messages.length - 1;
+
+          messages[lastIndex] = {
+            ...messages[lastIndex],
+            text: streamedAnswer,
+          };
+
+          return messages;
+        });
+      });
     } catch (error) {
       console.error("AI request failed:", error);
 
@@ -112,7 +149,7 @@ function AIAssistant() {
         )}
 
         {/* Messages */}
-        <div className="ai-messages">
+        <div className="messages">
           {messages.map((message, index) => (
             <div
               key={index}
@@ -160,6 +197,7 @@ function AIAssistant() {
               )}
             </div>
           ))}
+          <div ref={messagesEndRef} />
 
           {/* Loading */}
           {loading && (

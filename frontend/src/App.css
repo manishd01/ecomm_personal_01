@@ -1360,6 +1360,10 @@ select.input-field {
     max-width: 90%;
   }
 
+  .messages {
+    height: 500px;
+    overflow-y: auto;
+  }
   .ai-message-user {
     margin-left: 10px;
   }

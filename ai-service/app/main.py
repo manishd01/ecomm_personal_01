@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 
+from fastapi.responses import StreamingResponse
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -140,13 +141,22 @@ def health():
     }
 
 
-@app.post(
-    "/api/ai/ask",
-    response_model=ChatResponse,
-)
+# @app.post(
+#     "/api/ai/ask",
+#     response_model=ChatResponse,
+# )
+# def ask(request: ChatRequest):
+
+#     return answer_question(request.question)
+
+
+@app.post("/api/ai/ask")
 def ask(request: ChatRequest):
 
-    return answer_question(request.question)
+    return StreamingResponse(
+        answer_question(request.question),
+        media_type="text/plain",
+    )
 
 
 # createt  id = 14  |     order_number = ORD-000014    | thiiswayyy

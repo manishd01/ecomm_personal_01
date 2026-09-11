@@ -1,4 +1,6 @@
 import os
+import time
+from app.query_rewriter import rewrite_query
 
 from langchain_chroma import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -43,6 +45,11 @@ vector_store = Chroma(
 )
 
 bm25, bm25_documents = build_bm25_index(vector_store)
+
+llm = ChatGoogleGenerativeAI(
+    model="gemini-3.5-flash-lite",
+    google_api_key=os.environ["GEMINI_API_KEY"],
+)
 
 
 def bm25_search(question: str, k: int = 10):
@@ -100,24 +107,37 @@ Customer question:
     # llm = ChatGoogleGenerativeAI(
     #     model="gemini-3.5-flash-lite",
     # )
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-3.5-flash-lite",
-        google_api_key=os.environ["GEMINI_API_KEY"],
-    )
+    # llm = ChatGoogleGenerativeAI(
+    #     model="gemini-3.5-flash-lite",
+    #     google_api_key=os.environ["GEMINI_API_KEY"],
+    # )
 
-    response = llm.invoke(prompt)
+    # response = llm.invoke(prompt)
+    # response = llm.invoke(prompt)
 
-    if isinstance(response.content, list):
+    # if isinstance(response.content, list):
+    #     answer = "".join(
+    #         item.get("text", "") for item in response.content if isinstance(item, dict)
+    #     )
+    # else:
+    #     answer = response.content
 
-        answer = "".join(
-            item.get("text", "") for item in response.content if isinstance(item, dict)
-        )
+    for chunk in llm.stream(prompt):
 
-    else:
+        if isinstance(chunk.content, list):
 
-        answer = response.content
+            text = "".join(
+                item.get("text", "") for item in chunk.content if isinstance(item, dict)
+            )
 
-    return answer
+        else:
+
+            text = chunk.content
+
+        if text:
+            yield text
+
+    # return answer
 
 
 def reciprocal_rank_fusion(
@@ -147,47 +167,100 @@ def reciprocal_rank_fusion(
 
 
 def answer_question(question: str):
+    start_time = time.perf_counter()
+
     print(f"\nQUESTION: {question}")
 
-    # 1. Dense vector retrieval
+    # 1. Query rewriting
+    start = time.perf_counter()
+
+    search_query = rewrite_query(question)
+    # search_query = question
+
+    print(f"Original query: {question}")
+    print(f"Rewritten query: {search_query}")
+    print(f"QUERY REWRITE TIME: {time.perf_counter() - start:.2f}s")
+
+    # 2. Dense vector retrieval
+    start = time.perf_counter()
+
     vector_candidates = retrieve_documents(
-        question,
+        search_query,
         k=10,
     )
+
     print(f"VECTOR RESULTS: {len(vector_candidates)}")
+    print(f"VECTOR SEARCH TIME: {time.perf_counter() - start:.2f}s")
 
-    # 2. Lexical BM25 retrieval
+    # 3. Lexical BM25 retrieval
+    start = time.perf_counter()
+
     bm25_candidates = bm25_search(
-        question,
+        search_query,
         k=10,
     )
-    print(f"BM25 RESULTS: {len(bm25_candidates)}")
 
-    # 3. Combine both rankings
+    print(f"BM25 RESULTS: {len(bm25_candidates)}")
+    print(f"BM25 SEARCH TIME: {time.perf_counter() - start:.2f}s")
+
+    # 4. Combine both rankings
+    start = time.perf_counter()
+
     candidates = reciprocal_rank_fusion(
         [
             vector_candidates,
             bm25_candidates,
         ]
     )
-    print(f"RRF RESULTS: {len(candidates)}")
 
-    # 4. CrossEncoder reranking
+    print(f"RRF RESULTS: {len(candidates)}")
+    print(f"RRF TIME: {time.perf_counter() - start:.2f}s")
+
+    # 5. CrossEncoder reranking
+    start = time.perf_counter()
+
     ranked_documents = rerank_documents(
         question,
         candidates[:20],
         top_n=3,
     )
 
+    print(f"RERANKER RESULTS: {len(ranked_documents)}")
+    print(f"RERANKER TIME: {time.perf_counter() - start:.2f}s")
+
     relevant_documents = [document for document, score in ranked_documents]
 
-    # 5. LLM generation
-    answer = generate_answer(
+    # 6. LLM generation
+    start = time.perf_counter()
+
+    # answer = generate_answer(
+    #     question,
+    #     relevant_documents,
+    # )
+
+    # print(f"LLM GENERATION TIME: {time.perf_counter() - start:.2f}s")
+
+    # # Total request time
+    # total_time = time.perf_counter() - start_time
+
+    # print(f"TOTAL TIME: {total_time:.2f}s")
+
+    # return {
+    #     "answer": answer,
+    #     "sources": [document.metadata for document in relevant_documents],
+    # }
+
+    for chunk in generate_answer(
         question,
         relevant_documents,
-    )
+    ):
+        yield chunk
 
-    return {
-        "answer": answer,
-        "sources": [document.metadata for document in relevant_documents],
-    }
+    print(f"LLM GENERATION TIME: {time.perf_counter() - start:.2f}s")
+
+    total_time = time.perf_counter() - start_time
+
+    print(f"TOTAL TIME: {total_time:.2f}s")
+
+
+# //how to get my order money back?
