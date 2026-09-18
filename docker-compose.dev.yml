@@ -131,11 +131,13 @@ services:
 
     environment:
       ENVIRONMENT: development
+      PYTHONPATH: /app
 
     volumes:
       - ./ai-service/data/chroma:/app/data/chroma
       - ./ai-service/app:/app/app
       - ./ai-service/knowledge:/app/knowledge
+      - ./ai-service/evaluation:/app/evaluation
       - ai_huggingface_cache:/root/.cache/huggingface
       - ai_pip_cache:/root/.cache/pip
 

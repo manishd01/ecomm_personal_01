@@ -80,6 +80,45 @@ def retrieve_documents(
     return [document for document, score in results]
 
 
+def retrieve_relevant_documents(question: str, top_n: int = 3):
+    """
+    Run the same retrieval pipeline used by the application
+    and return the final reranked documents.
+    """
+
+    # 1. Query rewriting
+    search_query = rewrite_query(question)
+
+    # 2. Dense vector retrieval
+    vector_candidates = retrieve_documents(
+        search_query,
+        k=10,
+    )
+
+    # 3. BM25 retrieval
+    bm25_candidates = bm25_search(
+        search_query,
+        k=10,
+    )
+
+    # 4. Hybrid fusion
+    candidates = reciprocal_rank_fusion(
+        [
+            vector_candidates,
+            bm25_candidates,
+        ]
+    )
+
+    # 5. Cross-encoder reranking
+    ranked_documents = rerank_documents(
+        question,
+        candidates[:20],
+        top_n=top_n,
+    )
+
+    return ranked_documents
+
+
 def generate_answer(question: str, documents):
 
     context = "\n\n".join(document.page_content for document in documents)
@@ -170,63 +209,85 @@ def answer_question(question: str):
     start_time = time.perf_counter()
 
     print(f"\nQUESTION: {question}")
+    # 1. Shared RAG retrieval pipeline
+    # Used by both the application and evaluator.
 
-    # 1. Query rewriting
     start = time.perf_counter()
 
-    search_query = rewrite_query(question)
-    # search_query = question
-
-    print(f"Original query: {question}")
-    print(f"Rewritten query: {search_query}")
-    print(f"QUERY REWRITE TIME: {time.perf_counter() - start:.2f}s")
-
-    # 2. Dense vector retrieval
-    start = time.perf_counter()
-
-    vector_candidates = retrieve_documents(
-        search_query,
-        k=10,
-    )
-
-    print(f"VECTOR RESULTS: {len(vector_candidates)}")
-    print(f"VECTOR SEARCH TIME: {time.perf_counter() - start:.2f}s")
-
-    # 3. Lexical BM25 retrieval
-    start = time.perf_counter()
-
-    bm25_candidates = bm25_search(
-        search_query,
-        k=10,
-    )
-
-    print(f"BM25 RESULTS: {len(bm25_candidates)}")
-    print(f"BM25 SEARCH TIME: {time.perf_counter() - start:.2f}s")
-
-    # 4. Combine both rankings
-    start = time.perf_counter()
-
-    candidates = reciprocal_rank_fusion(
-        [
-            vector_candidates,
-            bm25_candidates,
-        ]
-    )
-
-    print(f"RRF RESULTS: {len(candidates)}")
-    print(f"RRF TIME: {time.perf_counter() - start:.2f}s")
-
-    # 5. CrossEncoder reranking
-    start = time.perf_counter()
-
-    ranked_documents = rerank_documents(
+    ranked_documents = retrieve_relevant_documents(
         question,
-        candidates[:20],
         top_n=3,
     )
 
     print(f"RERANKER RESULTS: {len(ranked_documents)}")
-    print(f"RERANKER TIME: {time.perf_counter() - start:.2f}s")
+    print(f"RETRIEVAL TIME: " f"{time.perf_counter() - start:.2f}s")
+
+    relevant_documents = [document for document, score in ranked_documents]
+
+    # ---------------------------------------------------------------
+
+    # # 1. Query rewriting
+    # start = time.perf_counter()
+
+    # search_query = rewrite_query(question)
+    # # search_query = question
+
+    # print(f"Original query: {question}")
+    # print(f"Rewritten query: {search_query}")
+    # print(f"QUERY REWRITE TIME: {time.perf_counter() - start:.2f}s")
+
+    # # 2. Dense vector retrieval
+    # start = time.perf_counter()
+
+    # vector_candidates = retrieve_documents(
+    #     search_query,
+    #     k=10,
+    # )
+
+    # print(f"VECTOR RESULTS: {len(vector_candidates)}")
+    # print(f"VECTOR SEARCH TIME: {time.perf_counter() - start:.2f}s")
+
+    # # 3. Lexical BM25 retrieval
+    # start = time.perf_counter()
+
+    # bm25_candidates = bm25_search(
+    #     search_query,
+    #     k=10,
+    # )
+
+    # print(f"BM25 RESULTS: {len(bm25_candidates)}")
+    # print(f"BM25 SEARCH TIME: {time.perf_counter() - start:.2f}s")
+
+    # # 4. Combine both rankings
+    # start = time.perf_counter()
+
+    # candidates = reciprocal_rank_fusion(
+    #     [
+    #         vector_candidates,
+    #         bm25_candidates,
+    #     ]
+    # )
+
+    # print(f"RRF RESULTS: {len(candidates)}")
+    # print(f"RRF TIME: {time.perf_counter() - start:.2f}s")
+
+    # # 5. CrossEncoder reranking
+    # start = time.perf_counter()
+
+    # # ranked_documents = rerank_documents(
+    # #     question,
+    # #     candidates[:20],
+    # #     top_n=3,
+    # # )
+
+    # ranked_documents = retrieve_relevant_documents(
+    #     question,
+    #     top_n=3,
+    # )
+
+    # print(f"RERANKER RESULTS: {len(ranked_documents)}")
+    # print(f"RERANKER TIME: {time.perf_counter() - start:.2f}s")
+    # ---------------------------------------------------------------
 
     relevant_documents = [document for document, score in ranked_documents]
 

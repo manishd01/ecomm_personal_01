@@ -6,7 +6,7 @@ WORKDIR /app
 
 COPY ai-service/requirements.txt .
 
-# CPU-only PyTorch  ---- importntm - before it was iantallling, usleess pkacges also, due to transtiive, pakcge list
+# CPU-only PyTorch  ---- use this important - before it was iantallling, useless packages also, due to transtiive, pakcge list
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install torch --index-url https://download.pytorch.org/whl/cpu
 
@@ -16,6 +16,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 COPY ai-service/app ./app
 COPY ai-service/knowledge ./knowledge
+COPY ai-service/evaluation ./evaluation
 
 RUN mkdir -p /app/data/chroma
 

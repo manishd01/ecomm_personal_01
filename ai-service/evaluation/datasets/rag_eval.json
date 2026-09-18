@@ -1,0 +1,358 @@
+[
+  {
+    "id": "return_001",
+    "question": "Can I return a product if I don't like it?",
+    "reference_answer": "Products can be returned within 30 days of delivery if they meet the return conditions.",
+    "relevant_sources": ["return_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "return_002",
+    "question": "How many days do I have to return a product?",
+    "reference_answer": "Products can be returned within 30 days of delivery.",
+    "relevant_sources": ["return_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "return_003",
+    "question": "Can I return an item after 45 days?",
+    "reference_answer": "No. The return period is 30 days from the date of delivery.",
+    "relevant_sources": ["return_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "return_004",
+    "question": "What condition must a product be in to qualify for a return?",
+    "reference_answer": "The product must meet the return conditions specified in the return policy, including being unused and in its original condition.",
+    "relevant_sources": ["return_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "return_005",
+    "question": "I changed my mind about my purchase. Can I send it back?",
+    "reference_answer": "Yes. A product can be returned within 30 days of delivery if it meets the applicable return conditions.",
+    "relevant_sources": ["return_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "return_006",
+    "question": "Can I return a used product?",
+    "reference_answer": "Returns require the product to be unused and in its original condition.",
+    "relevant_sources": ["return_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "return_007",
+    "question": "What is the return window for an order?",
+    "reference_answer": "The return window is 30 days from delivery.",
+    "relevant_sources": ["return_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "return_008",
+    "question": "Can I return a product without following the return conditions?",
+    "reference_answer": "No. A product must satisfy the return conditions to be eligible for return.",
+    "relevant_sources": ["return_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "return_009",
+    "question": "Is a return possible after the 30-day return period?",
+    "reference_answer": "No. The standard return period is 30 days from delivery.",
+    "relevant_sources": ["return_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "return_010",
+    "question": "What should I check before requesting a return?",
+    "reference_answer": "You should check that the product is within the 30-day return period and meets the required return conditions.",
+    "relevant_sources": ["return_policy.md"],
+    "expected": "answerable"
+  },
+
+  {
+    "id": "refund_001",
+    "question": "How long does a refund take?",
+    "reference_answer": "Refunds are processed within 5 to 7 business days after the return is approved.",
+    "relevant_sources": ["refund_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "refund_002",
+    "question": "When will I receive my refund after my return is approved?",
+    "reference_answer": "Refunds are processed within 5 to 7 business days after approval.",
+    "relevant_sources": ["refund_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "refund_003",
+    "question": "Do I automatically get a refund when I request a return?",
+    "reference_answer": "A refund is processed after the return is approved; requesting a return does not by itself guarantee an immediate refund.",
+    "relevant_sources": ["refund_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "refund_004",
+    "question": "How many business days does refund processing take?",
+    "reference_answer": "Refund processing takes 5 to 7 business days after approval.",
+    "relevant_sources": ["refund_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "refund_005",
+    "question": "I returned my item. When should I expect the money back?",
+    "reference_answer": "After the return is approved, the refund is processed within 5 to 7 business days.",
+    "relevant_sources": ["refund_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "refund_006",
+    "question": "Is a refund processed before the return is approved?",
+    "reference_answer": "No. The refund is processed after the return is approved.",
+    "relevant_sources": ["refund_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "refund_007",
+    "question": "What happens after my return gets approved?",
+    "reference_answer": "After approval, the refund is processed within 5 to 7 business days.",
+    "relevant_sources": ["refund_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "refund_008",
+    "question": "Will my refund arrive in one day?",
+    "reference_answer": "No. The stated refund processing time is 5 to 7 business days after approval.",
+    "relevant_sources": ["refund_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "refund_009",
+    "question": "Does the refund policy mention processing time?",
+    "reference_answer": "Yes. Refunds are processed within 5 to 7 business days after approval.",
+    "relevant_sources": ["refund_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "refund_010",
+    "question": "Can you guarantee that every refund will be completed in exactly 5 days?",
+    "reference_answer": "No. The policy states a processing period of 5 to 7 business days after approval, not an exact 5-day guarantee.",
+    "relevant_sources": ["refund_policy.md"],
+    "expected": "answerable"
+  },
+
+  {
+    "id": "shipping_001",
+    "question": "How long does standard shipping take?",
+    "reference_answer": "Standard shipping typically takes 3 to 5 business days.",
+    "relevant_sources": ["shipping_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "shipping_002",
+    "question": "When should I expect my order to arrive?",
+    "reference_answer": "Standard delivery typically takes 3 to 5 business days.",
+    "relevant_sources": ["shipping_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "shipping_003",
+    "question": "How many days does delivery normally take?",
+    "reference_answer": "Standard delivery normally takes 3 to 5 business days.",
+    "relevant_sources": ["shipping_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "shipping_004",
+    "question": "Does shipping happen on weekends?",
+    "reference_answer": "The knowledge base does not specify whether standard shipping operates on weekends.",
+    "relevant_sources": ["shipping_policy.md"],
+    "expected": "not_supported"
+  },
+  {
+    "id": "shipping_005",
+    "question": "Can I track my order after it has shipped?",
+    "reference_answer": "The shipping policy provides order tracking after shipment.",
+    "relevant_sources": ["shipping_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "shipping_006",
+    "question": "Is express shipping available?",
+    "reference_answer": "Express shipping is available as an additional shipping option.",
+    "relevant_sources": ["shipping_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "shipping_007",
+    "question": "How fast is express delivery?",
+    "reference_answer": "The knowledge base does not specify an exact delivery time for express shipping.",
+    "relevant_sources": ["shipping_policy.md"],
+    "expected": "not_supported"
+  },
+  {
+    "id": "shipping_008",
+    "question": "My order has shipped. How can I track it?",
+    "reference_answer": "Once the order has shipped, it can be tracked using the tracking information provided for the shipment.",
+    "relevant_sources": ["shipping_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "shipping_009",
+    "question": "Can shipping take longer than the normal delivery window?",
+    "reference_answer": "Yes. The standard delivery time is an estimate and delivery can take longer in some circumstances.",
+    "relevant_sources": ["shipping_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "shipping_010",
+    "question": "Do you provide international shipping?",
+    "reference_answer": "The knowledge base does not specify whether international shipping is available.",
+    "relevant_sources": ["shipping_policy.md"],
+    "expected": "not_supported"
+  },
+
+  {
+    "id": "cancellation_001",
+    "question": "Can I cancel my order?",
+    "reference_answer": "An order can be cancelled before it enters the shipping process.",
+    "relevant_sources": ["cancellation_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "cancellation_002",
+    "question": "When can I cancel an order?",
+    "reference_answer": "Orders can be cancelled before they enter the shipping process.",
+    "relevant_sources": ["cancellation_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "cancellation_003",
+    "question": "Can I cancel my order after it has shipped?",
+    "reference_answer": "No. Orders cannot be cancelled after they have entered the shipping process.",
+    "relevant_sources": ["cancellation_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "cancellation_004",
+    "question": "I just placed an order and want to cancel it. Is that possible?",
+    "reference_answer": "Yes, provided the order has not yet entered the shipping process.",
+    "relevant_sources": ["cancellation_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "cancellation_005",
+    "question": "Does cancellation remain possible after shipment?",
+    "reference_answer": "No. Cancellation is only available before the order enters the shipping process.",
+    "relevant_sources": ["cancellation_policy.md"],
+    "expected": "answerable"
+  },
+
+  {
+    "id": "warranty_001",
+    "question": "Do products come with a warranty?",
+    "reference_answer": "Eligible products come with a 12-month warranty.",
+    "relevant_sources": ["warranty_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "warranty_002",
+    "question": "How long is the product warranty?",
+    "reference_answer": "The standard warranty period for eligible products is 12 months.",
+    "relevant_sources": ["warranty_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "warranty_003",
+    "question": "Does the warranty cover accidental damage?",
+    "reference_answer": "The warranty does not cover accidental damage.",
+    "relevant_sources": ["warranty_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "warranty_004",
+    "question": "Can I claim warranty service after 12 months?",
+    "reference_answer": "The standard warranty period is 12 months, so claims after that period are not covered by the standard warranty.",
+    "relevant_sources": ["warranty_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "warranty_005",
+    "question": "What does the product warranty cover?",
+    "reference_answer": "The warranty covers eligible product defects under the conditions specified in the warranty policy.",
+    "relevant_sources": ["warranty_policy.md"],
+    "expected": "answerable"
+  },
+
+  {
+    "id": "payment_001",
+    "question": "What payment methods are supported?",
+    "reference_answer": "The platform supports credit cards, debit cards, UPI, and net banking.",
+    "relevant_sources": ["payment_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "payment_002",
+    "question": "Can I pay using UPI?",
+    "reference_answer": "Yes. UPI is a supported payment method.",
+    "relevant_sources": ["payment_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "payment_003",
+    "question": "Do you accept credit cards?",
+    "reference_answer": "Yes. Credit cards are supported.",
+    "relevant_sources": ["payment_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "payment_004",
+    "question": "Can I pay using net banking?",
+    "reference_answer": "Yes. Net banking is a supported payment method.",
+    "relevant_sources": ["payment_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "payment_005",
+    "question": "Can I pay with cryptocurrency?",
+    "reference_answer": "Cryptocurrency payments are not listed as a supported payment method in the knowledge base.",
+    "relevant_sources": ["payment_policy.md"],
+    "expected": "not_supported"
+  },
+
+  {
+    "id": "product_001",
+    "question": "What information is available about products?",
+    "reference_answer": "Product information includes details such as product name, description, specifications, and available options.",
+    "relevant_sources": ["product_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "product_002",
+    "question": "Can I see product specifications before buying?",
+    "reference_answer": "Yes. Product specifications are provided as part of the available product information.",
+    "relevant_sources": ["product_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "product_003",
+    "question": "Where can I find product details?",
+    "reference_answer": "Product details and specifications are available in the product information.",
+    "relevant_sources": ["product_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "product_004",
+    "question": "Does every product have the same specifications?",
+    "reference_answer": "No. Product specifications can vary between products.",
+    "relevant_sources": ["product_policy.md"],
+    "expected": "answerable"
+  },
+  {
+    "id": "product_005",
+    "question": "What is the battery life of every product?",
+    "reference_answer": "The knowledge base does not provide a single battery-life value applicable to every product.",
+    "relevant_sources": ["product_policy.md"],
+    "expected": "not_supported"
+  }
+]
